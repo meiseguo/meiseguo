@@ -23,4 +23,5 @@ B --> C{条件S}
 C --> |S=0.0| D[不动]
 C --> |S=1.0| E[加仓]
 D --> B
+Note right of E: Safe? Safety? Rescue? Freeze? Stop Win? Just Wait? Buy? Time Gap? Price Diff? Last Diff? Profitable?
 ```
