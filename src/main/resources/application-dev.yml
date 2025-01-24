@@ -1,0 +1,25 @@
+server:
+  port: 9191
+spring:
+  application:
+    name: server
+  data:
+    mongodb:
+       uri: mongodb+srv://tenwives:wvlXdEUYaKoZ7zPY@meiseguo.ct8tl.mongodb.net/strategy?retryWrites=true&w=majority&appName=meiseguo
+  mvc:
+    static-path-pattern: /static/**
+eureka:
+  client:
+    register-with-eureka: false
+    fetchRegistry: false
+logging:
+  level:
+    root: INFO
+  file:
+    max-history: 20
+    path: ./server/
+    name: server.log
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger- %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+    rolling-file-name: server.log.%d{yyyy-MM-dd}.%i.gz

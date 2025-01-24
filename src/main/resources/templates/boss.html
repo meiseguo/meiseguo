@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="BOSS">
+    <input type="hidden" id="address" value=""/>
+    <input type="hidden" id="access" value=""/>
+    <title>BOSS</title>
+
+    <!-- Bootstrap core CSS -->
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        body {
+            min-height: -webkit-fill-available;
+        }
+
+        html {
+            height: -webkit-fill-available;
+        }
+
+        main {
+            flex-wrap: nowrap;
+            height: -webkit-fill-available;
+            overflow-x: auto;
+            overflow-y: hidden;
+            width: 100vw;
+        }
+
+        .b-example-divider {
+            flex-shrink: 0;
+            width: 1.5rem;
+            background-color: rgba(0, 0, 0, .1);
+            border: solid rgba(0, 0, 0, .15);
+            border-width: 1px 0;
+            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+        }
+
+        .bi {
+            vertical-align: -.125em;
+            pointer-events: none;
+            fill: currentColor;
+        }
+
+        .dropdown-toggle { outline: 0; }
+
+        .nav-flush .nav-link {
+            border-radius: 0;
+        }
+
+        .btn-toggle {
+            display: inline-flex;
+            align-items: center;
+            padding: .25rem .5rem;
+            font-weight: 600;
+            color: rgba(0, 0, 0, .65);
+            background-color: transparent;
+            border: 0;
+        }
+        .btn-toggle:hover,
+        .btn-toggle:focus {
+            color: rgba(0, 0, 0, .85);
+            background-color: #d2f4ea;
+        }
+
+        .btn-toggle::before {
+            width: 1.25em;
+            line-height: 0;
+            content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
+            transition: transform .35s ease;
+            transform-origin: .5em 50%;
+        }
+
+        .btn-toggle[aria-expanded="true"] {
+            color: rgba(0, 0, 0, .85);
+        }
+        .btn-toggle[aria-expanded="true"]::before {
+            transform: rotate(90deg);
+        }
+
+        .btn-toggle-nav a {
+            display: inline-flex;
+            padding: .1875rem .5rem;
+            margin-top: .125rem;
+            margin-left: 1.25rem;
+            text-decoration: none;
+        }
+        .btn-toggle-nav a:hover,
+        .btn-toggle-nav a:focus {
+            background-color: #d2f4ea;
+        }
+
+        .scrollarea {
+            overflow-y: auto;
+        }
+
+        .fw-semibold { font-weight: 600; }
+        .lh-tight { line-height: 1.25; }
+
+
+        /*slider*/
+
+        /* Carousel base class */
+        .carousel {
+            margin-bottom: 0.2rem;
+        }
+        /* Since positioning the image, we need to help out the caption */
+        .carousel-caption {
+            bottom: 1.2rem;
+            z-index: 10;
+            padding-bottom:5px;
+        }
+
+        /* Declare heights because of positioning of img element */
+        .carousel-item {
+            height: 13.5rem;
+        }
+        .carousel-item > img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 13.5rem;
+            object-fit:cover;
+            background-size: cover;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+        body {
+            min-height: 75rem;
+            padding-top: 4.5rem;
+        }
+
+        .showAccount {
+            font-size: 10px;
+            font-weight: 100;
+        }
+    </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="bootstrap" viewBox="0 0 118 94">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M24.509 0c-6.733 0-11.715 5.893-11.492 12.284.214 6.14-.064 14.092-2.066 20.577C8.943 39.365 5.547 43.485 0 44.014v5.972c5.547.529 8.943 4.649 10.951 11.153 2.002 6.485 2.28 14.437 2.066 20.577C12.794 88.106 17.776 94 24.51 94H93.5c6.733 0 11.714-5.893 11.491-12.284-.214-6.14.064-14.092 2.066-20.577 2.009-6.504 5.396-10.624 10.943-11.153v-5.972c-5.547-.529-8.934-4.649-10.943-11.153-2.002-6.484-2.28-14.437-2.066-20.577C105.214 5.894 100.233 0 93.5 0H24.508zM80 57.863C80 66.663 73.436 72 62.543 72H44a2 2 0 01-2-2V24a2 2 0 012-2h18.437c9.083 0 15.044 4.92 15.044 12.474 0 5.302-4.01 10.049-9.119 10.88v.277C75.317 46.394 80 51.21 80 57.863zM60.521 28.34H49.948v14.934h8.905c6.884 0 10.68-2.772 10.68-7.727 0-4.643-3.264-7.207-9.012-7.207zM49.948 49.2v16.458H60.91c7.167 0 10.964-2.876 10.964-8.281 0-5.406-3.903-8.178-11.425-8.178H49.948z"></path>
+    </symbol>
+    <symbol id="home" viewBox="0 0 16 16">
+        <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4H2.5z"/>
+    </symbol>
+    <symbol id="people-circle" viewBox="0 0 16 16">
+        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+    </symbol>
+    <symbol id="chevron-right" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+    </symbol>
+    <symbol id="geo-fill" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999zm2.493 8.574a.5.5 0 0 1-.411.575c-.712.118-1.28.295-1.655.493a1.319 1.319 0 0 0-.37.265.301.301 0 0 0-.057.09V14l.002.008a.147.147 0 0 0 .016.033.617.617 0 0 0 .145.15c.165.13.435.27.813.395.751.25 1.82.414 3.024.414s2.273-.163 3.024-.414c.378-.126.648-.265.813-.395a.619.619 0 0 0 .146-.15.148.148 0 0 0 .015-.033L12 14v-.004a.301.301 0 0 0-.057-.09 1.318 1.318 0 0 0-.37-.264c-.376-.198-.943-.375-1.655-.493a.5.5 0 1 1 .164-.986c.77.127 1.452.328 1.957.594C12.5 13 13 13.4 13 14c0 .426-.26.752-.544.977-.29.228-.68.413-1.116.558-.878.293-2.059.465-3.34.465-1.281 0-2.462-.172-3.34-.465-.436-.145-.826-.33-1.116-.558C3.26 14.752 3 14.426 3 14c0-.599.5-1 .961-1.243.505-.266 1.187-.467 1.957-.594a.5.5 0 0 1 .575.411z"/>
+    </symbol>
+
+    <symbol id="info-fill" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+    </symbol>
+</svg>
+<nav class="navbar navbar-expand-md navbar-light fixed-top bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="javascript:;">
+            <svg class="bi me-2" width="30" height="24"><use xlink:href="#logo"/></svg>
+            <span class="fs-5 fw-semibold">BOSS</span><span th:text="${error}"></span>
+        </a>
+        <button class="btn btn-outline-secondary enableEthereumButton">连接MetaMask</button>
+        <div class="showAccount"></div>
+    </div>
+</nav>
+
+<main class="container">
+</main>
+<script type="text/javascript">
+    $('.enableEthereumButton').click(function () {
+        getAccount();
+    });
+    $('.showAccount').click(function () {
+        login();
+    });
+
+    async function getAccount() {
+        if (window.ethereum) {
+            window.web3 = new Web3(window.ethereum)
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+        } else if (window.web3) {
+            window.web3 = new Web3(window.web3.currentProvider)
+        } else {
+            window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
+        }
+        let acc = await window.web3.eth.getAccounts()
+        var account = acc[0];
+        $("#address").val(account);
+        $('.showAccount').text("登录");
+        $('.enableEthereumButton').hide();
+        var access = $("#access").val();
+        if(access.length < 1) {
+            login()
+        }
+    }
+
+    function setCookie(name,value)
+    {
+        var Days = 30;
+        var exp = new Date();
+        exp.setTime(exp.getTime() + Days*24*60*60*1000);
+        document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
+    }
+
+    function login() {
+        var address = $("#address").val()
+        if(address.length < 1) {
+            getAccount();
+            address = $("#address").val()
+            if(address.length < 1) {
+                return;
+            }
+        }
+
+        $.post("/open/signin/" + address, function(ret) {
+            console.log(ret.state)
+            if (ret.state === 200) {
+                var nonce = ret.data.nonce
+                web3.eth.personal.sign(nonce, address, "password").then(signdata=>{
+                    $.post("/open/login/" + address + "/" + signdata, function(res) {
+                        console.log(ret.state)
+                        if (res.state === 200) {
+                            var vo = res.data
+                            var access = vo.access
+                            $("#access").val(access)
+                            $('.showAccount').text(address);
+                            setCookie('token', access);
+                            window.location.href = "/open/pages"
+                        }
+                    })
+                });
+
+            } else {
+                window.alert(ret.msg)
+                window.location.href = "/index"
+            }
+        });
+    }
+
+    getAccount();
+</script>
+</body>
+</html>
