@@ -22,6 +22,9 @@ public class Action {
     @API(value = "订单号", search = true, visible = true)
     public String order;
 
+    @API(value = "操作员", search = true, visible = true)
+    public String operator;
+
     @API(value = "账户", search = true, visible = true)
     public String account;
 
@@ -35,6 +38,8 @@ public class Action {
     @API(value = "方向", type = "case", choise = {"buy:买入", "sell:卖出"}, visible = true)
     public String side;
 
+    @API(value = "模式", search = true, visible = true)
+    public String mode;
     // 均价
     @API(value = "价格", visible = true)
     public double price;
@@ -62,9 +67,14 @@ public class Action {
     @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
     int deleted = 0;
 
-    public Action(Account account, Asset asset, String type) {
-        this.account = account.account;
-        this.ccy = asset.ccy;
+    public Action() {}
+    public Action(Operator operator, String type) {
+        this.operator = operator.operator;
+        this.account = operator.account;
+        this.millis = System.currentTimeMillis();
+        this.status = "init";
+        this.mode = operator.mode;
+        this.ccy = operator.ccy;
         this.type = type;
     }
 
@@ -72,14 +82,12 @@ public class Action {
         this.side = "sell";
         this.price = price;
         this.amount = amount;
-        this.status = "init";
     }
 
     public void buy(double price, double amount) {
         this.side = "buy";
         this.price = price;
         this.amount = amount;
-        this.status = "init";
     }
 
     public double winRatio(INPUT input) {

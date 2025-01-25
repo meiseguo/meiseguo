@@ -1,58 +1,29 @@
 package com.meiseguo.api.ctrl;
 
-import com.meiseguo.api.dto.*;
 import com.meiseguo.api.pojo.Reply;
+import com.meiseguo.api.service.StrategyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @CrossOrigin
 @RestController
 public class ApiController {
     Logger logger = LogManager.getLogger(this.getClass().getName());
 
-    @PostMapping("/user/register")
-    public Reply register(@Valid @RequestBody RegisterDto dto) {
+    @Autowired
+    private StrategyService service;
 
-
-        return Reply.fail();
+    @PostMapping("/actions/{operator}/{price}")
+    public Reply actions(@PathVariable String operator, @PathVariable double price) {
+        return Reply.success(service.actions(operator, price));
     }
 
-    @PostMapping("/user/login")
-    public Reply login(@Valid @RequestBody LoginDto dto) {
-
-
-        return Reply.fail();
-    }
-
-    @PostMapping("/user/change/{username}")
-    public Reply change(@Valid @RequestBody ChangeDto dto, @PathVariable String username) {
-
-
-        return Reply.fail();
-    }
-
-    @PostMapping("/index/publish/{username}")
-    public Reply publish(@Valid @RequestBody PublishDto dto, @PathVariable String username) {
-
-
-        return Reply.fail();
-    }
-
-    @PostMapping("/index/page/{username}")
-    public Reply page(@RequestBody PageDto dto, @PathVariable String username) {
-
-
-        return Reply.fail();
-    }
-
-    @GetMapping("/index/project/{username}/{sn}")
-    public Reply project(@PathVariable String username, @PathVariable String sn) {
-
-
-        return Reply.fail();
+    @PostMapping("/update/{ordid}/{sn}/{status}/{amount}/{price}")
+    public Reply login(@PathVariable String ordid, @PathVariable String sn, @PathVariable String status,@PathVariable double amount, @PathVariable double price) {
+        service.update(ordid, sn, status, amount, price);
+        return Reply.success();
     }
 
 }

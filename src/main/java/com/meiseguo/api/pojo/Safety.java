@@ -23,7 +23,8 @@ public class Safety {
      */
     @API(value = "策略", visible = true, search = true)
     public String strategy;
-
+    @API(value = "策略配置", search = true, visible = true)
+    public String setting;
     // 哪一种
     @API(value = "币种", visible = true)
     public String ccy;

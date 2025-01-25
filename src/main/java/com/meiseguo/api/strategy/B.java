@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class B extends Strategy {
-    public B(Setting setting, Safety safety, Mode mode, Asset asset, Account account, StrategyApi api) {
-        super(setting, safety, mode, asset, account, api);
+    public B(Operator operator, Setting setting, Safety safety, Asset asset, Account account, StrategyApi api) {
+        super(operator, setting, safety, asset, account, api);
     }
 
     @Override
@@ -38,8 +38,8 @@ public class B extends Strategy {
 
     @Override
     public Optional<Action> sell(INPUT input) {
-        List<Action> actions = api.actionList(account.account, asset.ccy, buy, deal);
-        Optional<Action> latest = api.latestAction(account.account, asset.ccy, sell, deal);
+        List<Action> actions = api.actionList(operator, buy, buy, deal);
+        Optional<Action> latest = api.latestAction(operator, buy, sell, deal);
 
         switch (mode) {
             case Rescue:
@@ -51,7 +51,7 @@ public class B extends Strategy {
                     return Optional.empty();
                 }
                 double amount = rescueList.stream().mapToDouble(action -> action.amount).sum();
-                Action rescue = new Action(account, asset, buy);
+                Action rescue = newAction();
                 rescue.sell(input.price, amount);
                 List<Closed> closed = rescueList.stream().map(action -> action.close(rescue)).collect(Collectors.toList());
                 rescueList.forEach(action -> api.save(action));
@@ -75,7 +75,7 @@ public class B extends Strategy {
                     return Optional.empty();
                 }
                 Action cheap = investList.get(0);
-                Action invest = new Action(account, asset, buy);
+                Action invest = newAction();
                 invest.sell(input.price, cheap.amount);
                 cheap.close(invest);
                 api.save(cheap);
@@ -97,7 +97,7 @@ public class B extends Strategy {
                     return Optional.empty();
                 }
                 Action least = harvestList.get(0);
-                Action harvest = new Action(account, asset, buy);
+                Action harvest = newAction();
                 harvest.sell(input.price, least.amount);
                 least.close(harvest);
                 api.save(least);
@@ -108,6 +108,10 @@ public class B extends Strategy {
         return Optional.empty();
     }
 
+    private Action newAction() {
+        return new Action(operator, buy);
+    }
+
     /**
      * TODO 同一价格水平的未结订单要限制数量吗？
      * @param current 当前价
@@ -115,14 +119,14 @@ public class B extends Strategy {
      */
     @Override
     public Optional<Action> buy(INPUT current) {
-        Optional<Action> bought = api.latestAction(account.account, asset.ccy, buy, deal);
-        Optional<Action> sold = api.latestAction(account.account, asset.ccy, sell, deal);
+        Optional<Action> bought = api.latestAction(operator, buy, buy, deal);
+        Optional<Action> sold = api.latestAction(operator, buy, sell, deal);
         switch (mode) {
             case Invest:
             case Harvest:
                 // 如果清仓之后，这里有BUG
                 if (!bought.isPresent()) {
-                    Action initBuy = new Action(account, asset, buy);
+                    Action initBuy = newAction();
                     initBuy.buy(current.price, setting.unitBuyAmt);
                     return Optional.of(initBuy);
                 }
@@ -131,13 +135,13 @@ public class B extends Strategy {
                 long timeGap = System.currentTimeMillis() - lastBuy.millis;
                 // 投资阶段，价格跌幅满足条件，时间跨度满足条件，就可以买买买
                 if (priceDiff >= setting.priceDiff && timeGap >= setting.priceDiffMin) {
-                    Action buyTimeGap = new Action(account, asset, buy);
+                    Action buyTimeGap = newAction();
                     buyTimeGap.buy(current.price, lastBuy.amount * setting.goldenRatio);
                     return Optional.of(buyTimeGap);
                 }
 
                 if (timeGap >= setting.timeGap && priceDiff >= setting.timeGapMin) {
-                    Action buyPriceDiff = new Action(account, asset, buy);
+                    Action buyPriceDiff = newAction();
                     buyPriceDiff.buy(current.price, setting.unitBuyAmt);
                     return Optional.of(buyPriceDiff);
                 }
@@ -150,7 +154,7 @@ public class B extends Strategy {
                 double priceDrop = lastSell.price - current.price;
                 // 还有一种情况是在上涨行情，刚卖掉了一笔，然后回落了。可以买一笔
                 if (lastSell.millis > lastBuy.millis && timeGap >= setting.timeGap && priceDrop >= setting.priceDiff) {
-                    Action buyPriceDiff = new Action(account, asset, buy);
+                    Action buyPriceDiff = newAction();
                     buyPriceDiff.buy(current.price, setting.unitBuyAmt);
                     return Optional.of(buyPriceDiff);
                 }

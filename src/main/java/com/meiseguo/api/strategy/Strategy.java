@@ -13,16 +13,18 @@ public abstract class Strategy implements Function<INPUT, List<Action>> {
     public String buy = "buy";
     public String sell = "sell";
     public String deal = "deal";
+    public Operator operator;
     public Setting setting;
     public Safety safety;
     public Mode mode;
     public Asset asset;
     public Account account;
     public StrategyApi api;
-    public Strategy(Setting setting, Safety safety, Mode mode, Asset asset, Account account, StrategyApi api) {
+    public Strategy(Operator operator, Setting setting, Safety safety, Asset asset, Account account, StrategyApi api) {
+        this.operator = operator;
         this.setting = setting;
         this.safety = safety;
-        this.mode = mode;
+        this.mode = Mode.valueOf(operator.mode);
         this.asset = asset;
         this.account = account;
         this.api = api;
@@ -31,7 +33,7 @@ public abstract class Strategy implements Function<INPUT, List<Action>> {
     /**
      * 上次价格
      */
-    public Record record;
+    public Record record = new Record();
 
     /**
      * 策略应用

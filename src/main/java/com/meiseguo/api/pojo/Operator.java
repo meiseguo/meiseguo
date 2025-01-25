@@ -24,11 +24,17 @@ public class Operator {
     @API(value = "账户", search = true, visible = true)
     public String account;
 
-    @API(value = "资产", search = true, visible = true)
-    public String asset;
+    @API(value = "币种", search = true, visible = true)
+    public String ccy;
+
+    @API(value = "模式", search = true, visible = true)
+    public String mode;
 
     @API(value = "策略", search = true, visible = true)
     public String strategy;
+
+    @API(value = "策略配置", search = true, visible = true)
+    public String setting;
 
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();

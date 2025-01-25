@@ -24,6 +24,8 @@ public class Setting {
      */
     @API(value = "策略", visible = true, search = true)
     public String strategy;
+    @API(value = "策略配置", search = true, visible = true)
+    public String setting;
     @API(value = "备注", visible = true, search = true)
     public String remark;
     @API(value = "黄金比例")
