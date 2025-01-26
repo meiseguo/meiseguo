@@ -41,7 +41,7 @@ public class InternalController {
     @RequestMapping(value = "/internal/init", method = RequestMethod.GET)
     public void init() {
         logger.info("PagesUtil.build(Head)");
-        for(Class<?> clazz : PagesUtil.pojos) {
+        for(Class<?> clazz : PagesUtil.classes) {
             mongoTemplate.save(PagesUtil.build(clazz));
         }
 

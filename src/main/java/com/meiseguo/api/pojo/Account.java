@@ -24,7 +24,7 @@ public class Account {
     @API(value = "ccy", search = true, visible = true)
     public String ccy;
 
-    @API(value = "类型", type = "case", choise = {"main:主号", "sub:字号"}, visible = true)
+    @API(value = "类型", type = "case", choice = {"main:主号", "sub:字号"}, visible = true)
     public String type;
 
     @API(value = "余额", visible = true)
@@ -36,6 +36,6 @@ public class Account {
     @API(value = "更新时间", type = "time", visible = true)
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }

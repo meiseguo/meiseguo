@@ -32,6 +32,6 @@ public class Bind {
     @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }

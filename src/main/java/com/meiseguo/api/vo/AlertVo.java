@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @API(value = "通知消息")
 public class AlertVo {
 
-    @API(value = "type", type = "case", choise = {"alert:公告", "url:链接", "commodity:商品"}, visible = true)
+    @API(value = "type", type = "case", choice = {"alert:公告", "url:链接", "commodity:商品"}, visible = true)
     String type;
     @API(value = "商品sn")
     String refid;
@@ -28,6 +28,6 @@ public class AlertVo {
     @API(value = "时间", visible = true, search = true)
     String time;
 
-    @API(value = "状态", type = "case", choise = {"new:未读", "read:已读"}, visible = true)
+    @API(value = "状态", type = "case", choice = {"new:未读", "read:已读"}, visible = true)
     String status = "new";
 }

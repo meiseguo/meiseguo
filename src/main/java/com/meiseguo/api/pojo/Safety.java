@@ -30,7 +30,7 @@ public class Safety {
     public String ccy;
 
     //方向: 多 空
-    @API(value = "类型", type = "case", choise = {"buy:做多", "sell:做空"}, visible = true)
+    @API(value = "类型", type = "case", choice = {"buy:做多", "sell:做空"}, visible = true)
     public String type;
 
     // 周期：1分钟，15分钟，1小时
@@ -67,7 +67,7 @@ public class Safety {
     @API(value = "更新时间", type = "time", visible = true)
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }
 

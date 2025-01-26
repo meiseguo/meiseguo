@@ -15,8 +15,11 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class StrategyService implements StrategyApi {
@@ -52,6 +55,21 @@ public class StrategyService implements StrategyApi {
     }
 
     @Override
+    public List<Action> pendingActions(Operator operator, String type, String side) {
+        List<Action> pending = mongoTemplate.find(new Query(Criteria.where("operator").is(operator.operator).and("account").is(operator.account).and("ccy").is(operator.ccy).and("type").is(type).and("side").is(side).and("status").in(ActionStatus.init.name(), ActionStatus.live.name())), Action.class);
+        // 如果1分钟还没请求OKX下单，这种就标记为取消
+        pending.stream()
+                .filter(action -> ActionStatus.init.name().equals(action.status))
+                .filter(action -> System.currentTimeMillis() - action.millis > TimeUnit.MINUTES.toMillis(1))
+                .forEach(action -> {
+                    action.setStatus(ActionStatus.canceled.name());
+                    action.setUpdatetime(LocalDateTime.now());
+                    save(action);
+                });
+        return pending.stream().filter(action -> !ActionStatus.canceled.name().equals(action.status)).collect(Collectors.toList());
+    }
+
+    @Override
     public List<Action> actionList(Operator operator, String type, String side, String status) {
         return mongoTemplate.find(new Query(Criteria.where("operator").is(operator.operator).and("account").is(operator.account).and("ccy").is(operator.ccy).and("type").is(type).and("side").is(side).and("status").is(status)), Action.class);
     }
@@ -62,14 +80,11 @@ public class StrategyService implements StrategyApi {
     }
 
     @Override
-    public void update(String ordid, String sn, String status, double amount, double dealPrice) {
+    public void update(String ordId, String sn, String status) {
         Action action = mongoTemplate.findOne(new Query(Criteria.where("sn").is(new ObjectId(sn))), Action.class);
         assert action != null;
-        action.setOrder(ordid);
+        action.setOrder(ordId);
         action.setStatus(status);
-        action.setAmount(amount);
-        // TODO closed 是平仓数量。
-        action.setPrice(dealPrice);
         mongoTemplate.save(action);
     }
 
@@ -87,4 +102,10 @@ public class StrategyService implements StrategyApi {
     public void save(Setting setting) {
         mongoTemplate.save(setting);
     }
+
+    @Override
+    public void save(Alert alert) {
+        mongoTemplate.save(alert);
+    }
+
 }

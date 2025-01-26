@@ -22,7 +22,7 @@ public class Message {
     @API(value = "来源", visible = true, search = true)
     String source;
 
-    @API(value = "type", type = "case", choise = {"alert:公告", "inform:通知"}, visible = true)
+    @API(value = "type", type = "case", choice = {"alert:公告", "inform:通知"}, visible = true)
     String type;
 
     @API(value = "openid", search = true)
@@ -31,7 +31,7 @@ public class Message {
     @API(value = "消息", visible = true, search = true)
     String message;
 
-    @API(value = "状态", type = "case", choise = {"new:未读", "read:已读", "delete:删除"}, visible = true)
+    @API(value = "状态", type = "case", choice = {"new:未读", "read:已读", "delete:删除"}, visible = true)
     String status = "new";
 
     @API(value = "创建时间", readonly = true, type = "time")
@@ -40,6 +40,6 @@ public class Message {
     @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }

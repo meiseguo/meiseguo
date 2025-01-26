@@ -25,7 +25,7 @@ public class Alarm {
     public String ccy;
 
     //方向: 多 空
-    @API(value = "类型", search = true, type = "case", choise = {"price:价格预警", "position:仓位预警", "balance:余额预警"}, visible = true)
+    @API(value = "类型", search = true, type = "case", choice = {"price:价格预警", "position:仓位预警", "balance:余额预警"}, visible = true)
     public String type;
 
     @API(value = "备注", search = true, visible = true)
@@ -44,6 +44,6 @@ public class Alarm {
     @API(value = "更新时间", type = "time", visible = true)
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }

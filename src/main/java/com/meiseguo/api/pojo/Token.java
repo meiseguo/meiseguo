@@ -27,7 +27,7 @@ public class Token {
     String version;
     @API(value = "token", visible = true)
     String token;
-    @API(value = "类型", type = "case", choise = {"api:接口访问", "mini:小程序"})
+    @API(value = "类型", type = "case", choice = {"api:接口访问", "mini:小程序"})
     String type = "api";
 
     @API(value = "过期时间")
@@ -39,7 +39,7 @@ public class Token {
     @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 
     public static void main(String[] args) {

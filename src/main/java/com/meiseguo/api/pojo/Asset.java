@@ -25,7 +25,7 @@ public class Asset {
     public String ccy;
 
     //方向: 多 空
-    @API(value = "类型", search = true, type = "case", choise = {"SPOT:现货", "MARGIN:杠杆", "CONTRACT:合约"}, visible = true)
+    @API(value = "类型", search = true, type = "case", choice = {"SPOT:现货", "MARGIN:杠杆", "OPTION:合约", "FUTURES:期货", "SWAP:永续"}, visible = true)
     public String type;
 
     // 周期：1分钟，15分钟，1小时
@@ -41,6 +41,6 @@ public class Asset {
     @API(value = "更新时间", type = "time", visible = true)
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }

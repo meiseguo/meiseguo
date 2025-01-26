@@ -35,7 +35,7 @@ public class Approve {
     @API(value = "ref_id", search = true)
     String ref_id;
 
-    @API(value = "审核状态", visible = true, type = "case", choise = {"INIT:未審核","REJECT:審核失敗","APPROVED:審核成功","ONLINE:審核完成"})
+    @API(value = "审核状态", visible = true, type = "case", choice = {"INIT:未審核","REJECT:審核失敗","APPROVED:審核成功","ONLINE:審核完成"})
     String status = "INIT";
 
     @API(value = "创建时间", readonly = true, type = "time")
@@ -44,6 +44,6 @@ public class Approve {
     @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }

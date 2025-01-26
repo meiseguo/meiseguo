@@ -20,9 +20,9 @@ public class ApiController {
         return Reply.success(service.actions(operator, price));
     }
 
-    @PostMapping("/update/{ordid}/{sn}/{status}/{amount}/{price}")
-    public Reply login(@PathVariable String ordid, @PathVariable String sn, @PathVariable String status,@PathVariable double amount, @PathVariable double price) {
-        service.update(ordid, sn, status, amount, price);
+    @PostMapping("/update/{ordId}/{sn}/{status}")
+    public Reply login(@PathVariable String ordId, @PathVariable String sn, @PathVariable String status) {
+        service.update(ordId, sn, status);
         return Reply.success();
     }
 

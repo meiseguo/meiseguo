@@ -11,12 +11,18 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
-@Document("operator")
-@API(value = "操作员")
-public class Operator {
+@Document("alert")
+@API(value = "警告")
+public class Alert {
     @Id
     @API(value = "sn", readonly = true)
     ObjectId sn = new ObjectId();
+
+    @API(value = "警告", search = true, visible = true)
+    public String message;
+
+    @API(value = "触发原因", search = true, visible = true)
+    public String trigger;
 
     @API(value = "操作员", search = true, visible = true)
     public String operator;
@@ -36,6 +42,9 @@ public class Operator {
     @API(value = "策略配置", search = true, visible = true)
     public String setting;
 
+    @API(value = "价格", visible = true)
+    public double price;
+
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();
 
@@ -44,4 +53,14 @@ public class Operator {
 
     @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
+
+    public Alert() {}
+    public Alert(Operator operator) {
+        this.ccy = operator.ccy;
+        this.setting = operator.setting;
+        this.account = operator.account;
+        this.strategy = operator.strategy;
+        this.mode = operator.mode;
+        this.operator = operator.operator;
+    }
 }

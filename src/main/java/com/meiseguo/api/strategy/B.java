@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public class B extends Strategy {
     public B(Operator operator, Setting setting, Safety safety, Asset asset, Account account, StrategyApi api) {
         super(operator, setting, safety, asset, account, api);
+        this.strategyType = StrategyType.buy.name();
     }
 
     @Override
@@ -38,9 +39,12 @@ public class B extends Strategy {
 
     @Override
     public Optional<Action> sell(INPUT input) {
-        List<Action> actions = api.actionList(operator, buy, buy, deal);
-        Optional<Action> latest = api.latestAction(operator, buy, sell, deal);
-
+        List<Action> actions = api.actionList(operator, strategyType, OrderSide.buy.name(), ActionStatus.filled.name());
+        Optional<Action> latest = api.latestAction(operator, strategyType, OrderSide.sell.name(), ActionStatus.filled.name());
+        List<Action> pending = api.pendingActions(operator, strategyType, OrderSide.sell.name());
+        if(!pending.isEmpty()) {
+            return Optional.empty();
+        }
         switch (mode) {
             case Rescue:
                 // 如果是拯救模式，能卖的全部卖了。
@@ -109,7 +113,7 @@ public class B extends Strategy {
     }
 
     private Action newAction() {
-        return new Action(operator, buy);
+        return new Action(operator, strategyType);
     }
 
     /**
@@ -119,8 +123,14 @@ public class B extends Strategy {
      */
     @Override
     public Optional<Action> buy(INPUT current) {
-        Optional<Action> bought = api.latestAction(operator, buy, buy, deal);
-        Optional<Action> sold = api.latestAction(operator, buy, sell, deal);
+        Optional<Action> bought = api.latestAction(operator, strategyType, OrderSide.buy.name(), ActionStatus.filled.name());
+        Optional<Action> sold = api.latestAction(operator, strategyType, OrderSide.sell.name(), ActionStatus.filled.name());
+        List<Action> pending = api.pendingActions(operator, strategyType, OrderSide.buy.name());
+        // 如果有未成交的订单
+        if(!pending.isEmpty()) {
+            return Optional.empty();
+        }
+
         switch (mode) {
             case Invest:
             case Harvest:
@@ -161,6 +171,7 @@ public class B extends Strategy {
 
             case Rescue:
             case Freeze:
+                // 撤销买入挂单
                 return Optional.empty();
         }
         return Optional.empty();

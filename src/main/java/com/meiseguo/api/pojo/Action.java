@@ -32,10 +32,10 @@ public class Action {
     public String ccy;
 
     //方向: 多 空
-    @API(value = "类型", type = "case", choise = {"buy:做多", "sell:做空"}, visible = true)
+    @API(value = "类型", type = "case", choice = {"buy:做多", "sell:做空"}, visible = true)
     public String type;
 
-    @API(value = "方向", type = "case", choise = {"buy:买入", "sell:卖出"}, visible = true)
+    @API(value = "方向", type = "case", choice = {"buy:买入", "sell:卖出"}, visible = true)
     public String side;
 
     @API(value = "模式", search = true, visible = true)
@@ -55,7 +55,7 @@ public class Action {
 
     public long millis;
 
-    @API(value = "状态", type = "case", choise = {"init:创建", "pending:委托", "deal:成交", "cancel:撤销"}, search = true, visible = true)
+    @API(value = "状态", type = "case", choice = {"init:创建", "live:委托", "filled:成交", "canceled:撤销"}, search = true, visible = true)
     public String status;
 
     @API(value = "创建时间", readonly = true, type = "time")
@@ -64,7 +64,7 @@ public class Action {
     @API(value = "更新时间", type = "time", visible = true)
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 
     public Action() {}
@@ -72,30 +72,30 @@ public class Action {
         this.operator = operator.operator;
         this.account = operator.account;
         this.millis = System.currentTimeMillis();
-        this.status = "init";
+        this.status = ActionStatus.init.name();
         this.mode = operator.mode;
         this.ccy = operator.ccy;
         this.type = type;
     }
 
     public void sell(double price, double amount) {
-        this.side = "sell";
+        this.side = OrderSide.sell.name();
         this.price = price;
         this.amount = amount;
     }
 
     public void buy(double price, double amount) {
-        this.side = "buy";
+        this.side = OrderSide.buy.name();
         this.price = price;
         this.amount = amount;
     }
 
     public double winRatio(INPUT input) {
-        if("buy".equals(type)) {
+        if(StrategyType.buy.name().equals(type)) {
             return (input.price - this.price) / this.price;
         }
 
-        if("sell".equals(type)) {
+        if(StrategyType.sell.name().equals(type)) {
             return (this.price - input.price) / this.price;
         }
         return 0;

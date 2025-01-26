@@ -30,10 +30,10 @@ public class Credits {
     @API(value = "积分", readonly = true, visible = true)
     BigDecimal credits;
 
-    @API(value = "类型", type = "case", choise = {"bonus:邀请奖励", "dynamic:动态收益","transfer:转账", "statement:日结","consume:消耗","gain:收益", "charge:充值", "refund:退款","buy:交易","withdraw:提现", "sale:寄售", "bid:竞标","fee:手续费"}, visible = true)
+    @API(value = "类型", type = "case", choice = {"bonus:邀请奖励", "dynamic:动态收益","transfer:转账", "statement:日结","consume:消耗","gain:收益", "charge:充值", "refund:退款","buy:交易","withdraw:提现", "sale:寄售", "bid:竞标","fee:手续费"}, visible = true)
     String type = "";
 
-    @API(value = "状态", type = "case", choise = {"INIT:初始化", "APPLY:提现", "PROCESS:处理", "DONE:已发放"}, visible = true)
+    @API(value = "状态", type = "case", choice = {"INIT:初始化", "APPLY:提现", "PROCESS:处理", "DONE:已发放"}, visible = true)
     String status = "INIT";
 
     @API(value = "创建时间", readonly = true, type = "time")

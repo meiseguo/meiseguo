@@ -26,7 +26,7 @@ public class Closed {
     public String ccy;
 
     //方向: 多 空
-    @API(value = "类型", type = "case", choise = {"buy:做多", "sell:做空"}, visible = true)
+    @API(value = "类型", type = "case", choice = {"buy:做多", "sell:做空"}, visible = true)
     public String type;
 
     // 均价
@@ -42,7 +42,7 @@ public class Closed {
     @API(value = "手续费", visible = true)
     public double fee;
 
-    @API(value = "状态", type = "case", choise = {"init:创建", "pending:委托", "deal:成交", "cancel:撤销"}, search = true, visible = true)
+    @API(value = "状态", type = "case", choice = {"init:创建", "pending:委托", "deal:成交", "cancel:撤销"}, search = true, visible = true)
     public String status;
 
     @API(value = "创建时间", readonly = true, type = "time")
@@ -51,6 +51,6 @@ public class Closed {
     @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
 
-    @API(value = "软删除", type = "case", choise = {"0:正常", "1:已删除"})
+    @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;
 }
