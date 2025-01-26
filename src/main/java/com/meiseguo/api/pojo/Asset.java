@@ -18,6 +18,9 @@ public class Asset {
     @API(value = "sn", readonly = true)
     ObjectId sn = new ObjectId();
 
+    @API(value = "操作员", search = true, visible = true)
+    public String operator;
+
     @API(value = "账户", search = true, visible = true)
     public String account;
     // 哪一种
