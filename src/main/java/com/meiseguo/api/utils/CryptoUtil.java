@@ -1,14 +1,9 @@
 package com.meiseguo.api.utils;
 
-import com.google.common.collect.ImmutableList;
-import org.bitcoinj.crypto.*;
 import org.springframework.util.ObjectUtils;
-import org.web3j.crypto.*;
-import org.web3j.utils.Numeric;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,9 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 public class CryptoUtil {
     public static Random random = new Random();
-    private final static ImmutableList<ChildNumber> BIP44_ETH_ACCOUNT_ZERO_PATH =
-            ImmutableList.of(new ChildNumber(44, true), new ChildNumber(60, true),
-                    ChildNumber.ZERO_HARDENED, ChildNumber.ZERO);
     public static final String inviteSymbol = "0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final String hashSymbol = "0123456789@abcdefghijklmnopqrstuvwxyz";
     public static final String codeSymbol = "0123456789";
@@ -221,31 +213,6 @@ public class CryptoUtil {
     public static String[] split(String s, String images) {
         if(ObjectUtils.isEmpty(images)) return new String[0];
         return images.split(s);
-    }
-
-
-    static final String PERSONAL_MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n";
-    public static boolean checkEthSign(String message, String address, String signature) {
-        String prefix = PERSONAL_MESSAGE_PREFIX + message.length();
-        byte[] msgHash = Hash.sha3((prefix + message).getBytes());
-
-        byte[] signatureBytes = Numeric.hexStringToByteArray(signature);
-        byte v = signatureBytes[64];
-        if (v < 27) {
-            v += 27;
-        }
-        Sign.SignatureData sd = new Sign.SignatureData(v, Arrays.copyOfRange(signatureBytes, 0, 32), Arrays.copyOfRange(signatureBytes, 32, 64));
-
-        for (int i = 0; i < 4; i++) {
-            BigInteger publicKey = Sign.recoverFromSignature((byte) i, new ECDSASignature( new BigInteger(1, sd.getR()), new BigInteger(1, sd.getS())), msgHash);
-            if (publicKey != null) {
-                String addressRecovered = "0x" + Keys.getAddress(publicKey);
-                if (addressRecovered.equalsIgnoreCase(address)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public static String de(String encoded) {
