@@ -16,7 +16,7 @@ public class Record implements Consumer<INPUT> {
     List<INPUT[]> lowHigh;
 
     public Record() {
-        duration = TimeUnit.SECONDS.toMillis(15);
+        duration = TimeUnit.MINUTES.toMillis(15);
         lowHigh = new ArrayList<>();
     }
     public Record(long millis) {
