@@ -73,6 +73,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.collect/com.springsource.com.google.common.collect -->
+        <dependency>
+            <groupId>com.google.collect</groupId>
+            <artifactId>com.springsource.com.google.common.collect</artifactId>
+            <version>0.8.0.20080820</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
