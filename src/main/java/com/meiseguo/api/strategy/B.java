@@ -144,13 +144,13 @@ public class B extends Strategy {
                 double priceDiff = lastBuy.price - current.price;
                 long timeGap = System.currentTimeMillis() - lastBuy.millis;
                 // 投资阶段，价格跌幅满足条件，时间跨度满足条件，就可以买买买
-                if (priceDiff >= setting.priceDiff && timeGap >= setting.priceDiffMin) {
+                if (priceDiff >= setting.priceDiff && timeGap >= setting.timeGapMin) {
                     Action buyTimeGap = newAction();
                     buyTimeGap.buy(current.price, lastBuy.amount * setting.goldenRatio);
                     return Optional.of(buyTimeGap);
                 }
 
-                if (timeGap >= setting.timeGap && priceDiff >= setting.timeGapMin) {
+                if (timeGap >= setting.timeGap && priceDiff >= setting.priceDiffMin) {
                     Action buyPriceDiff = newAction();
                     buyPriceDiff.buy(current.price, setting.unitBuyAmt);
                     return Optional.of(buyPriceDiff);
