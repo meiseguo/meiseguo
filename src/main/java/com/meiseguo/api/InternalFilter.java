@@ -38,7 +38,7 @@ public class InternalFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        logger.info("TheFilter start at " + LocalDateTime.now());
+        logger.info("TheFilter start at {}", LocalDateTime.now());
         init("filter.debug");
         init("filter.ignore");
     }
@@ -109,7 +109,7 @@ public class InternalFilter implements Filter {
         String requestURI = request.getRequestURI();
         String token = request.getHeader("token");
         String access = request.getHeader("access");
-        logger.info("{} token {} access {}",requestURI, token, access);
+        logger.debug("{} token {} access {}",requestURI, token, access);
         if(requestURI.startsWith("/internal")) {
             if (ObjectUtils.isEmpty(token)) {
                 if (reject(requestURI, request, servletResponse)) {
@@ -138,7 +138,7 @@ public class InternalFilter implements Filter {
 
     @Override
     public void destroy() {
-        logger.info("TheFilter destroy at " + LocalDateTime.now());
+        logger.info("TheFilter destroy at {}", LocalDateTime.now());
     }
 }
 
