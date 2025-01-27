@@ -108,4 +108,9 @@ public class StrategyService implements StrategyApi {
         mongoTemplate.save(alert);
     }
 
+    @Override
+    public void save(Statistic statistic) {
+        mongoTemplate.save(statistic);
+    }
+
 }

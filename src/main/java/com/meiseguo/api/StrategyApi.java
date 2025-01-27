@@ -17,4 +17,5 @@ public interface StrategyApi {
     void save(List<Closed> result);
     void save(Setting setting);
     void save(Alert alert);
+    void save(Statistic statistic);
 }

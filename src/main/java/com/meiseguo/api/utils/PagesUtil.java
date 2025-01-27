@@ -15,7 +15,7 @@ public class PagesUtil {
             Token.class,
             Bind.class,
             Config.class,
-            Safety.class, Setting.class, Asset.class, Account.class, Alarm.class, Alert.class, Action.class, Closed.class, Operator.class, Order.class
+            Safety.class, Setting.class, Asset.class, Account.class, Alarm.class, Alert.class, Action.class, Closed.class, Operator.class, Order.class, Statistic.class
     };
 
     public static Map<String, Class<?>> headMap = new HashMap<String, Class<?>>() {

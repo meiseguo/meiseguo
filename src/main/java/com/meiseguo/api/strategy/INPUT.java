@@ -9,6 +9,6 @@ public class INPUT {
         this.millis = System.currentTimeMillis();
         this.price = price;
     }
-    public double millis;
+    public long millis;
     public double price;
 }
