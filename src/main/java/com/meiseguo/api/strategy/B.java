@@ -67,7 +67,7 @@ public class B extends Strategy {
                     double priceGap = input.price - sell.price;
                     long timeGap = System.currentTimeMillis() - sell.millis;
                     // 投资模式下，如果价格涨的不是很高，或者相隔时间不长，就先不动。
-                    if(priceGap < setting.timeGapMin && timeGap < setting.priceDiffMin) {
+                    if(priceGap < setting.priceDiffMin && timeGap < setting.timeGapMin) {
                         return Optional.empty();
                     }
                 }
