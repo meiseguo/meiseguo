@@ -23,7 +23,7 @@ public abstract class Strategy implements Function<INPUT, List<Action>> {
      * 上次价格，统计局部最高和最低
      */
     public Record record = new Record();
-    public LocalDateTime until = LocalDateTime.now().plusSeconds(-10);
+    public static LocalDateTime until = LocalDateTime.now().plusSeconds(10);
     public Strategy(Operator operator, Setting setting, Safety safety, Asset asset, Account account, StrategyApi api) {
         this.operator = operator;
         this.setting = setting;
