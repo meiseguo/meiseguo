@@ -249,7 +249,7 @@ public abstract class Strategy implements Function<Input, List<Action>> {
     }
 
     public boolean sameAction(Input input, double priceDiff) {
-        long limited = investment().stream().filter(a -> System.currentTimeMillis() - a.millis < TimeUnit.HOURS.toMillis(24)).filter(a -> Math.abs(a.winRatio(input)) < priceDiff).count();
+        long limited = investment().stream().filter(a -> input.millis - a.millis < TimeUnit.HOURS.toMillis(24)).filter(a -> Math.abs(a.winRatio(input)) < priceDiff).count();
         return guess.test(Case.when(mode, "相同订单：" + limited).is(limited > 0));
     }
 
