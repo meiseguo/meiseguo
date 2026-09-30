@@ -1,7 +1,8 @@
 package com.meiseguo.api.ctrl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +17,7 @@ import javax.annotation.PostConstruct;
 @CrossOrigin
 @RequestMapping("/server")
 public class ServerController {
-    Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    Logger logger = LogManager.getLogger(this.getClass().getName());
 
     @PostConstruct
     public void init() {
