@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Accessors(chain = true)
@@ -22,64 +23,100 @@ public class Setting {
     /**
      * 策略唯一Key
      */
-    @API(value = "策略", visible = true, search = true)
+    @API(value = "策略", search = true, visible = true)
     public String strategy;
-    @API(value = "策略配置", search = true, visible = true)
+    @API(value = "配置", search = true, visible = true)
     public String setting;
-    @API(value = "备注", visible = true, search = true)
+    @API(value = "备注", search = true)
     public String remark;
     @API(value = "黄金比例")
     public double goldenRatio = 1.618;
     /**
      * 标准单笔大小
      */
-    @API(value = "单笔买入数量", visible = true)
-    public double unitBuyAmt;
-    @API(value = "单笔卖出数量", visible = true)
-    public double unitSellAmt;
+    @API(value = "最小单位", visible = true)
+    public double unitAmt;
+    @API(value = "开仓数量", visible = true)
+    public double openAmt;
+    /**
+     * RSI范围
+     */
+    @API(value = "最小RSI", visible = true)
+    public double minRsi;
+    @API(value = "最大RSI", visible = true)
+    public double maxRsi;
+
 
     /**
      * 超过时间差允许投资
      */
-    @API(value = "下单时间跨度", visible = true)
+    @API(value = "补仓：秒")
     public long timeGap;
-    @API(value = "至少时间跨度", visible = true)
-    public long timeGapMin;
+    @API(value = "减仓：秒")
+    public long timeGapClose;
+    @API(value = "最快：秒")
+    public long timeGapWin;
+    @API(value = "最慢：秒")
+    public long timeGapLoss;
+    @API(value = "对冲：秒")
+    public long timeGapHedge;
+    @API(value = "换仓：秒")
+    public long timeGapExchange;
 
     /**
-     * 超过价格差允许投资
+     * 滑点
      */
-    @API(value = "最大涨跌幅", visible = true)
-    public double priceDiff;
-    @API(value = "最小涨跌幅", visible = true)
+    @API(value = "滑点0.001", visible = true)
+    public double slippage;
+    @API(value = "最小振幅", visible = true)
     public double priceDiffMin;
 
     /**
      * 盈利率：2%
      */
-    @API(value = "单笔止盈比率", visible = true)
+    @API(value = "止盈比例", visible = true)
     public double winRatio;
-    @API(value = "最小止盈比例", visible = true)
+    @API(value = "不亏比例", visible = true)
     public double minRatio;
+
+    @API(value = "-止损比例", visible = true)
+    public double stopLossRatio;
+    @API(value = "-回撤比例", visible = true)
+    public double drawdownRatio;
 
     /**
      * 限额，超过就不能加仓了。清仓之后这个又重新计算
      */
-    @API(value = "投资限额", visible = true)
+    @API(value = "限额", visible = true)
     public double limitedValue;
 
-
     /**
-     * 阈值：可以决定下注的大小
+     * 限损，超过这么大损失就要止损一笔
      */
-    @API(value = "安全边界阈值", visible = true)
-    public double threshold;
+    @API(value = "限损", visible = true)
+    public double limitedLoss;
+    /**
+     * 限次：7天内相同价位不允许投资超过这么多次
+     */
+    @API(value = "限次", visible = true)
+    public long limitedCount;
+    /**
+     * 时间限制：短线必须要在固定时间内完成减仓
+     */
+    @API(value = "限时：毫秒", visible = true)
+    public long limitedTime;
+    public String getLimitedTime() {
+        return TimeUnit.MILLISECONDS.toMinutes(limitedTime) + "分钟";
+    }
 
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();
 
-    @API(value = "更新时间", type = "time", visible = true)
+    @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
+
+    @API(value = "均线止盈", type = "case", choice = {"0:不要求", "1:均线内"})
+    public int average = 0;
 
     @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})
     int deleted = 0;

@@ -21,7 +21,6 @@ public class ConfigService {
 
     public Optional<String> get(String key) {
         Config config = mongoTemplate.findOne(new Query(Criteria.where("key").is(key)), Config.class);
-        logger.info("[config] {} = {}", key, config);
         if(ObjectUtils.isEmpty(config)) {
             return Optional.empty();
         }

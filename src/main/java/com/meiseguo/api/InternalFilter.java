@@ -1,5 +1,6 @@
 package com.meiseguo.api;
 
+import com.meiseguo.api.pojo.Bind;
 import com.meiseguo.api.pojo.Config;
 import com.meiseguo.api.pojo.Token;
 import com.meiseguo.api.utils.CryptoUtil;
@@ -34,7 +35,7 @@ public class InternalFilter implements Filter {
 
     @Autowired
     private MongoTemplate mongoTemplate;
-    private ConcurrentHashMap<String, Config> cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Config> cache = new ConcurrentHashMap<>();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -45,7 +46,10 @@ public class InternalFilter implements Filter {
 
     private Config get(String key) {
         Config config = cache.get(key);
-        if(config == null) return null;
+        if(config == null) {
+            init(key);
+            return cache.get(key);
+        }
         if(config.getCreatetime().plusMinutes(30).isBefore(LocalDateTime.now())) {
             config = init(key);
         }
@@ -64,6 +68,46 @@ public class InternalFilter implements Filter {
     }
 
     private boolean reject(String uri, HttpServletRequest request, ServletResponse servletResponse) {
+        String userAgent = request.getHeader("User-Agent");
+        Config white = get("filter.white");
+        if(ObjectUtils.isEmpty(white)) {
+            logger.error("white not config");
+        } else if ("true".equals(white.getValue())) {
+            Bind bind = mongoTemplate.findOne(Query.query(Criteria.where("openid").is(userAgent).and("type").is("User-Agent")), Bind.class);
+            if(ObjectUtils.isEmpty(bind)) {
+                logger.error("first visit: {}", userAgent);
+                Bind create = new Bind();
+                create.setOpenid(userAgent);
+                create.setType("User-Agent");
+                create.setTimes(1);
+                create.setReject(1);
+                create.setVisit(1);
+                mongoTemplate.save(create);
+            } else {
+                bind.setTimes(bind.getTimes()+1);
+                bind.setUpdatetime(LocalDateTime.now());
+                String username = bind.getUsername();
+                Config pass = get("white." + username);
+                if(ObjectUtils.isEmpty(pass) || !"true".equals(pass.getValue())) {
+                    logger.info("black user, reject {}", uri);
+                    bind.setReject(bind.getReject() + 1);
+                    mongoTemplate.save(bind);
+                    try {
+                        servletResponse.setContentType("application/json;charset=utf-8");
+                        servletResponse.getWriter().print("{\"msg\":\"403 forbid\",\"state\":403}");
+                        return true;
+                    } catch (Exception e) {
+                        logger.error("fail to write 401", e);
+                        return true;
+                    }
+                } else {
+                    bind.setVisit(bind.getVisit() + 1);
+                    mongoTemplate.save(bind);
+                    return false;
+                }
+            }
+        }
+
         Config one = get("filter.debug");
         if(ObjectUtils.isEmpty(one)) {
             logger.error("debug not config");
@@ -93,7 +137,7 @@ public class InternalFilter implements Filter {
             return true;
         } catch (Exception e) {
             logger.error("fail to write 401", e);
-            return false;
+            return true;
         }
     }
 
@@ -110,6 +154,7 @@ public class InternalFilter implements Filter {
         String token = request.getHeader("token");
         String access = request.getHeader("access");
         logger.debug("{} token {} access {}",requestURI, token, access);
+
         if(requestURI.startsWith("/internal")) {
             if (ObjectUtils.isEmpty(token)) {
                 if (reject(requestURI, request, servletResponse)) {

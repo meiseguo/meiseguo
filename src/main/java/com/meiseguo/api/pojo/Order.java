@@ -20,6 +20,8 @@ public class Order {
 
     @API(value = "账户", search = true, visible = true)
     public String account;
+    @API(value = "操作员", search = true, visible = true)
+    public String operator;
     // 哪一种
     @API(value = "币种", search = true, visible = true)
     public String ccy;

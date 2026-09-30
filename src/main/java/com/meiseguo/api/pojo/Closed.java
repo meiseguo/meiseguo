@@ -22,7 +22,10 @@ public class Closed {
     @API(value = "close", readonly = true)
     ObjectId close = new ObjectId();
 
-    @API(value = "ccy", search = true, visible = true)
+    @API(value = "操作员", search = true, visible = true)
+    public String operator;
+
+    @API(value = "ccy", search = true)
     public String ccy;
 
     //方向: 多 空
@@ -39,16 +42,33 @@ public class Closed {
     @API(value = "平仓价格", visible = true)
     public double deal;
 
-    @API(value = "手续费", visible = true)
+    @API(value = "盈利价值", visible = true)
+    public double value;
+
+    @API(value = "利润", visible = true)
+    public double gain;
+
+    @API(value = "利润类型", type = "case", choice = {"USDT:现金", "SPOT:现货"}, visible = true)
+    public String gainType;
+
+    public double getValue() {
+        return StrategyType.buy.name().equals(type) ? closed * (deal - price) : closed * (price - deal);
+    }
+
+    public double getRatio() {
+        return StrategyType.buy.name().equals(type) ? 100.0*(deal - price)/price : 100.0*(price - deal)/price;
+    }
+
+    @API(value = "手续费")
     public double fee;
 
-    @API(value = "状态", type = "case", choice = {"init:创建", "pending:委托", "deal:成交", "cancel:撤销"}, search = true, visible = true)
+    @API(value = "状态", type = "case", choice ={"init:创建", "live:委托", "filled:成交", "canceled:撤销", "error:异常", "closed:平仓"}, search = true)
     public String status;
 
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();
 
-    @API(value = "更新时间", type = "time")
+    @API(value = "更新时间", type = "time", visible = true)
     LocalDateTime updatetime = LocalDateTime.now();
 
     @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})

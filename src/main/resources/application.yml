@@ -1,5 +1,6 @@
 server:
-  port: 9191
+  port: 9990
+  shutdown: graceful
 spring:
   application:
     name: server

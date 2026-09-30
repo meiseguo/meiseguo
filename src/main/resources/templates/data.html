@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="data">
+    <input type="hidden" id="address" value=""/>
+    <input type="hidden" id="access" value=""/>
+    <title>BOSS</title>
+
+    <!-- Bootstrap core CSS -->
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+        }
+
+        .flex {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            gap: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="flex">
+    <div id="main" style="height:30000px;width: 1080px;"></div>
+</div>
+
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    window.addEventListener('resize', function() {
+        myChart.resize();
+    });
+    var ccy = location.hash.length < 1 ? 'DOGE-USDT-SWAP' : location.hash.substring(1)
+
+    $.post("/internal/data/" + ccy, function(ret) {
+        if (ret.state === 200) {
+            var record = ret.data
+            var option = {
+                title: '',
+                tooltip: {},
+                legend: {
+                    data: ['涨幅', '跌幅', '最新', '反弹']
+                },
+                yAxis: {
+                    type: 'category',
+                    data: record.index
+                },
+                xAxis: {
+                    type: 'value',
+                    min: 0,
+                    max: 0.1
+                },
+                series: [{
+                    name: '涨幅',
+                    type: 'bar',
+                    stack: 'x',
+                    data: record.up
+                }, {
+                    name: '跌幅',
+                    type: 'bar',
+                    stack: 'x',
+                    data: record.down
+                }, {
+                    name: '最新',
+                    type: 'bar',
+                    stack: 'x',
+                    data: record.latest
+                }, {
+                    name: '反弹',
+                    type: 'bar',
+                    stack: 'x',
+                    data: record.bounce
+                }]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        } else {
+            console.log(ret.msg)
+        }
+    })
+</script>
+</body>
+</html>

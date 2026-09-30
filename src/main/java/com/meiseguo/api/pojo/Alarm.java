@@ -41,7 +41,7 @@ public class Alarm {
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();
 
-    @API(value = "更新时间", type = "time", visible = true)
+    @API(value = "更新时间", type = "time")
     LocalDateTime updatetime = LocalDateTime.now();
 
     @API(value = "软删除", type = "case", choice = {"0:正常", "1:已删除"})

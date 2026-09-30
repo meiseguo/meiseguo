@@ -3,21 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <title>index</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap core CSS -->
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
     <style>
         body {min-height: 100vh;display: flex;flex-direction: row;min-height: -webkit-fill-available;}
         html {height: -webkit-fill-available;}
-        main {display: flex;flex-wrap: nowrap;height: 100vh;padding-top: 100px;height: -webkit-fill-available;max-height: 100vh;overflow-x: auto;overflow-y: hidden;}
-        @media (min-width: 768px) {.bd-placeholder-img-lg {font-size: 3.5rem;} }
+        @media (min-width: 768px) {html {font-size: 0.5rem;} }
+        @media (min-width: 395px) {html {font-size: 1.0rem;} }
     </style>
+    <script type="text/javascript">
+        function closingRound(sn) {
+            $.post("/round/closing/" + sn, function(ret) {
+                if (ret.state === 200) {
+                    var round = ret.data
+                    var id = round.sn;
+                    $("#" + id).empty()
+                    $("#" + id).append(build(round))
+                }
+            });
+        }
+
+        function followRound(sn) {
+            $.post("/round/follow/" + sn, function(ret) {
+                if (ret.state === 200) {
+                    var round = ret.data
+                    var id = round.sn;
+                    $("#" + id).empty()
+                    $("#" + id).append(build(round))
+                }
+            });
+        }
+
+        function followNow(sn) {
+            $.post("/round/now/" + sn, function(ret) {
+                if (ret.state === 200) {
+                    console.log("follow now");
+                }
+            });
+        }
+
+        function reduceNow(sn) {
+            $.post("/round/reduce/" + sn, function(ret) {
+                if (ret.state === 200) {
+                    console.log("reduce now");
+                }
+            });
+        }
+
+        function build(round) {
+            var id = round.sn;
+            console.log(round)
+            var txt = '<div id="'+id+'">' + '<div style="display: flex; flex-direction: row; justify-content: flex-start;" ><button type="button" class="btn btn-danger" onclick="followRound(\''+id+'\')">跟单</button>' + round.round + ' ' + round.status + '<button type="button" class="btn btn-success btn-sm" onclick="closingRound(\''+id+'\')">手动清算</button> </div>'
+            '<ul>';
+            if(round.followList !== undefined) {
+                for (var i = 0; i < round.followList.length; i++) {
+                    var follow = round.followList[i];
+                    var action = '';
+                    var reduce = '';
+                    if(follow.status === 'init') {
+                        action = '<button type="button" class="btn btn-danger btn-sm" onclick="followNow(\''+follow.sn+'\')">立即</button> '
+                    }
+                    if(follow.status === 'live') {
+                        reduce = '<button type="button" class="btn btn-success btn-sm" onclick="reduceNow(\''+follow.sn+'\')">减仓</button> '
+                    }
+                    txt = txt + '<li style="display: flex;flex-direction: row;justify-content: space-between "> <span>' + follow.index + '</span>' + reduce + '<span>' + follow.operator + '</span><span>'+follow.strategy+'</span><span>状态：' + follow.status + '</span>' + action + '</li>';
+                }
+            }
+            txt = txt + '</ul></div>'
+            return txt;
+        }
+
+        function listRounds() {
+            $.post("/round/list", function(ret) {
+                if (ret.state === 200) {
+                    $("#rounds-buy").empty()
+                    $("#rounds-sell").empty()
+                    var vo = ret.data
+                    for (var i=0;i<vo.length;i++) {
+                        var round = vo[i]
+                        $("#rounds-"+round.type).append(build(round))
+                    }
+                }
+            });
+        }
+        function createRound(type) {
+            var operator = $("#operator").val();
+            if(operator.length < 1) {
+                alert("输入操作员");
+                return;
+            }
+
+            var unit  = $("#unit").val();
+            if(unit.length < 1) {
+                alert("输入单笔数量");
+                return;
+            }
+
+            $.post("/round/" + operator + "/" + type + "/" + unit, function(ret) {
+                if (ret.state === 200) {
+                    var vo = ret.data
+                    alert(vo.round)
+                    listRounds();
+                } else {
+                    alert("无法开一局");
+                }
+            });
+        }
+    </script>
 </head>
 <body class="text-center">
-<main>
-    <div class="text-center" style="width: 100vw;">
-        <div style="width: 100%; height: 40px;"></div>
-        <h1>BOSS</h1>
+<div class="form-control">
+    <div id="main-sell" style="display: flex; flex-direction: column;">
+        <label for="main-sell" class="form-label" title="卖出" style="display: flex;flex-direction: row;align-items: center;justify-content: space-between;">
+            做空/卖出
+
+            <button style="background-color: #fc4273;color:white;border: 0" class="btn btn-primary" name="sell" type="button" onclick="createRound('sell')">开一局</button>
+        </label>
+        <div id="rounds-sell" class="form-control" style="background-color: #fc4273;">
+
+        </div>
     </div>
-</main>
+    <input id="operator" class="form-control" name="operator" type="text" placeholder="操作员" />
+    <input id="unit" class="form-control" name="unit" type="number" step="10" placeholder="单笔数量" />
+    <div id="main-buy" style="display: flex; flex-direction: column;">
+        <label for="main-buy" class="form-label" title="买入" style="display: flex;flex-direction: row;align-items: center;justify-content: space-between;">
+            做多/买入
+            <button style="background-color: #22be73;color:white;border: 0" class="btn btn-primary" name="buy" type="button" onclick="createRound('buy')">开一局</button>
+        </label>
+        <div id="rounds-buy" class="form-control" style="background-color: #22be73;">
+
+        </div>
+    </div>
+</div>
+<script type="text/javascript" >
+    setInterval(listRounds, 1000)
+</script>
 </body>
 </html>

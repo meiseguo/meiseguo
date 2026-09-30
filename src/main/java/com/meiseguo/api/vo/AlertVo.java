@@ -16,7 +16,7 @@ public class AlertVo {
     @API(value = "商品sn")
     String refid;
     @API(value = "链接地址")
-    String url;//pages/detail?sn=aabiaddas
+    String url;
 
     @API(value = "openid", search = true)
     String openid;

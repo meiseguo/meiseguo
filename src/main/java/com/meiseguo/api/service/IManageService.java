@@ -1,8 +1,8 @@
 package com.meiseguo.api.service;
 
+import com.meiseguo.api.API;
 import com.meiseguo.api.dto.PageDto;
 import com.meiseguo.api.dto.UpdateDto;
-import com.meiseguo.api.API;
 import com.meiseguo.api.pojo.Reply;
 
 public interface IManageService {

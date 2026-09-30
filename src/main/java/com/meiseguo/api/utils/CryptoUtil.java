@@ -192,6 +192,11 @@ public class CryptoUtil {
         return "@" + phone.substring(0,3) + "*******" + phone.charAt(phone.length()-1);
     }
 
+    public static String secret(String password) {
+        if(ObjectUtils.isEmpty(password)) return "";
+        return password.substring(0,3) + repeat("*", password.length() - 4) + password.charAt(password.length()-1);
+    }
+
     public static Collection<String> appendList(String avatar, String images) {
         Collection<String> data = new ArrayList<>();
         data.add(avatar);

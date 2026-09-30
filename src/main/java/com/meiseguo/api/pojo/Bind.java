@@ -23,8 +23,17 @@ public class Bind {
     @API(value = "type", readonly = true, visible = true, search = true)
     String type;
 
-    @API(value = "username", readonly = true, visible = true, search = true)
+    @API(value = "username", visible = true, search = true)
     String username;
+
+    @API(value = "times", visible = true)
+    int times = 0;
+
+    @API(value = "reject", visible = true)
+    int reject = 0;
+
+    @API(value = "visit", visible = true)
+    int visit = 0;
 
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();

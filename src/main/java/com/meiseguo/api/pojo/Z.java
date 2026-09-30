@@ -16,6 +16,7 @@ public enum Z {
     openid("唯一id"),
     is_bot("机器人"),
     username("用户名"),
+    account("账户"),
     version("版本"),
     appid("appid"),
     appsecret("appsecret"),
@@ -32,9 +33,12 @@ public enum Z {
     updatetime("修改时间"),
     source("来源"),
     localid("本地id：例如IMEI，MAC"),
-    orderid("订单ID：UOI12345678"),
+    order("订单ID：12345678"),
+    operator("操作员"),
     type("类型"),
-    status("状态")
+    ccy("币种"),
+    status("状态"),
+    traceid("跟踪id")
     ;
 
     String desc;

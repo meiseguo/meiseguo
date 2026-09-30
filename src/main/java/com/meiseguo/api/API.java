@@ -13,6 +13,7 @@ public @interface API {
     boolean search() default false;
     boolean readonly() default false;
     boolean remote() default false;
+    boolean secret() default false;
     String type() default "str";//str url date time case bool
     String[] choice() default {};// A:0,B:1
     String source() default "";

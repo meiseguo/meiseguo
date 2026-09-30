@@ -5,7 +5,7 @@ var values = []
 var dataMap = []
 var colspans = []
 var lastId = ['']
-var pageSize = 255
+var pageSize = 100
 var readonlySet = ['sn', 'deleted', 'createtime', 'updatetime']
 function setCookie(name,value)
 {
@@ -197,7 +197,9 @@ function createitem() {
 		console.log('头部信息为空，无法新增')
 	}
 	$("#the-modal").modal("show")
-	$(".modal-title").html("<button type='button' class='btn btn-outline-primary' onclick='submitcreate()'>新增 <span class='glyphicon glyphicon-send'></span></button>")
+	var name = $('.'+target).text()
+	$(".modal-title").text(name)
+	$(".modal-action").html("<button type='button' class='btn btn-outline-primary' onclick='submitcreate()'>新增 <span class='glyphicon glyphicon-send'></span></button>")
 
 	txt = '<table class="min-table">'
 	for(var i=0;i<values.length;i++) {
@@ -327,7 +329,7 @@ function first() {
 			$("#load-more").show()
 			$("#load-less").hide()
 			let nextId = ''
-			console.log("[joinnearby] "+target+" data success ")
+			console.log("[server] "+target+" data success ")
 
 			dataMap = result.data
 
@@ -375,7 +377,19 @@ function first() {
 					if(name === 'sn') {
 						table = table + '<td colspan="0" style="display:none" id="'+id+'"></td>\n'
 					} else if(values[j].visible) {
-						table = table + '<td colspan="'+colspans[j]+'" class="data-item" id="'+id+'">' + clean(obj[name]) + '</td>\n'
+						if(values[j].type === 'case') {
+							var ichoise = values[j].choise
+							var idata = obj[name]
+							for(var x=0;x<ichoise.length;x++) {
+								var kv = ichoise[x]
+								if (idata == kv.key) {
+									idata = kv.value
+								}
+							}
+							table = table + '<td colspan="'+colspans[j]+'" class="data-item" id="'+id+'">' + clean(idata) + '</td>\n'
+						} else {
+							table = table + '<td colspan="'+colspans[j]+'" class="data-item" id="'+id+'">' + clean(obj[name]) + '</td>\n'
+						}
 					}
 					nextId = obj['sn']
 				}
@@ -401,17 +415,18 @@ function first() {
 			});
 		},
 		error: function( xhr, result, obj ) {
-			console.log("[joinnearby] "+target+" head error " + result)
+			console.log("[server] "+target+" head error " + result)
 		}
 	})
 }
 
 function popItem(itemid) {
 	console.log(itemid)
-	$("#modal-title").html('<button type="button" class="btn btn-danger" onclick="removeitem('+itemid +')"> 真删</button>')
-
+	var name = $('.'+target).text()
+	$(".modal-title").text(name)
+	$(".modal-action").html('<button type="button" class="btn btn-danger" onClick="removeitem('+itemid +')">真删</button>')
 	var index = parseInt(itemid)
-	if(itemid >= dataMap.length) {
+	if (itemid >= dataMap.length) {
 		loadmore();
 		popItem(0)
 		return
@@ -440,7 +455,7 @@ function popItem(itemid) {
 				var options = ''
 				for(var i=0;i<ichoise.length;i++) {
 					var kv = ichoise[i]
-					if(idata === kv.key) {
+					if(idata == kv.key) {
 						options = options + '<option value="'+kv.key+'" selected>'+kv.value+'</option>'
 					} else {
 						options = options + '<option value="'+kv.key+'">'+kv.value+'</option>'
@@ -460,7 +475,7 @@ function popItem(itemid) {
 	}
 	var lastone = itemid-1
 	var nextone = itemid+1
-	itemhtml = itemhtml + '<tr><td></td><td><button type="button" class="btn btn-outline-dark" onclick="popItem('+lastone+')">上一条</button></td><td><button type="button" class="btn btn-outline-dark" onclick="popItem('+nextone+')">下一条</button></td></tr>'
+	itemhtml = itemhtml + '<tr><td></td><td><button type="button" class="btn btn-outline-dark" onclick="popItem('+lastone+')">←</button></td><td><button type="button" class="btn btn-outline-dark" onclick="popItem('+nextone+')">→</button></td></tr>'
 	itemhtml = itemhtml+'</table>'
 	$("#modal-body").html(itemhtml)
 	$("#the-modal").modal('show')
@@ -472,14 +487,14 @@ function head() {
 	jQuery.ajax({
 	    url: baseUrl + "/pages/head/"+target+"?r=" + Math.random(),
 	    success: function( result ) {
-	        console.log("[joinnearby] "+target+" head success")
+	        console.log("[server] "+target+" head success")
 			var state = result.state
 			if(state === 403) {
 				$("#pages-head").empty()
 				$("#pages-data").empty()
 				$("#total").empty()
 				window.location.href = "/server/boss"
-				alert("去签名登录吧")
+				alert("违法闯入，已上报！")
 			}
 			var data = result.data
 			title = data.name
@@ -487,7 +502,7 @@ function head() {
 			first()
 	    },
 	    error: function( xhr, result, obj ) {
-	      console.log("[joinnearby] "+target+" head error " + result)
+	      console.log("[server] "+target+" head error " + result)
 	    }
 	})
 }
@@ -497,10 +512,11 @@ $("#pages-data").empty()
 $("#total").empty()
 $(document).ready(function(){
 	$('.'+target).addClass('active')
+
 	jQuery.ajax({
 		url: baseUrl + "/pages/heads?r=" + Math.random(),
 		success: function( result ) {
-			console.log("[joinnearby] heads success")
+			console.log("[server] heads success")
 			var data = result.data
 			if(data.length > 0) {
 				$(".navbar-nav").empty()
@@ -510,13 +526,14 @@ $(document).ready(function(){
 				var kv = data[i]
 				if(kv.key === target) {
 					css = 'active'
+					$(".navbar-brand").text(kv.value)
 				}
 				var li = '<li class="nav-item '+kv.key+'"><a class="nav-link '+css+'" href="#'+kv.key+'" onclick="page(\''+kv.key+'\')">'+kv.value+'</a></li>'
 				$(".navbar-nav").append(li)
 			}
 		},
 		error: function( xhr, result, obj ) {
-			console.log("[joinnearby] heads error " + result)
+			console.log("[server] heads error " + result)
 		}
 	})
 
@@ -533,7 +550,7 @@ $(document).ready(function(){
 		$("#pages-data").empty()
 		$("#total").empty()
 		window.location.href = "/server/boss"
-		alert("去签名登录吧")
+		alert("非法闯入，已上报！")
 	})
 	head()
 

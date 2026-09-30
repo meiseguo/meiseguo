@@ -3,7 +3,6 @@ package com.meiseguo.api;
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializeWriter;
-import org.bson.types.ObjectId;
 
 import java.lang.reflect.Type;
 
@@ -16,6 +15,6 @@ public class ObjectIdJsonSerializer implements ObjectSerializer {
             serializer.getWriter().writeNull();
             return;
         }
-        out.write("\"" + ((ObjectId) object).toString() + "\"");
+        out.write("\"" + object + "\"");
     }
 }
