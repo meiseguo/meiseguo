@@ -44,7 +44,7 @@ public class Operator {
     @API(value = "zhang")
     public double zhang = 1000;
 
-    @API(value = "模式", visible = true, type = "case", choice = {"Balance:平衡", "Rescue:自救", "Freeze:冻结", "Clear:清仓"}, search = true)
+    @API(value = "模式", visible = true, type = "case", choice = {"Invest:投资", "Rescue:自救", "Freeze:冻结", "Clear:清仓"}, search = true)
     public String mode;
     @API(value = "RSI:0/1", choice = {"0:否", "1:是"}, visible = true)
     public int rsi;
