@@ -58,10 +58,6 @@ public class Setting {
     public long timeGapWin;
     @API(value = "最慢：秒")
     public long timeGapLoss;
-    @API(value = "对冲：秒")
-    public long timeGapHedge;
-    @API(value = "换仓：秒")
-    public long timeGapExchange;
 
     /**
      * 滑点

@@ -97,12 +97,6 @@ public class StrategyService implements StrategyApi {
     }
 
     @Override
-    public Optional<Hedge> getHedge(ActionRelation which, ObjectId sn) {
-        return Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where(which.name()).is(sn.toString())), Hedge.class));
-    }
-
-
-    @Override
     public Relax relax(String operator, RelaxReason reason) {
         String key = operator + "." + reason.name();
         relaxMap.computeIfAbsent(key, k -> new Relax(operator, reason.desc()));
@@ -177,11 +171,6 @@ public class StrategyService implements StrategyApi {
     }
 
     @Override
-    public Optional<Hedge> nextHedge(Operator operator, StrategyType type, String status) {
-        return Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where(Z.operator.name()).is(operator.operator).and(Z.type.name()).is(type.name()).and(Z.status.name()).is(status)), Hedge.class));
-    }
-
-    @Override
     public Optional<Closed> lastClosed(Operator operator, StrategyType type) {
         return Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where(Z.operator.name()).is(operator.operator).and(Z.type.name()).is(type.name())).with(Sort.by("createtime").descending()).limit(1), Closed.class));
     }
@@ -215,13 +204,6 @@ public class StrategyService implements StrategyApi {
             Follow todo = follow.get();
             todo.setStatus(status);
             todo.setValue(todo.getAmount() * (StrategyType.buy.name().equals(todo.type) ? (action.getPrice() - todo.getPrice()) : (todo.getPrice() - action.getPrice())));
-            save(todo);
-        }
-        // 更新对冲单状态
-        Optional<Hedge> hedge = getHedge(ActionRelation.close, action.getSn());
-        if (hedge.isPresent()) {
-            Hedge todo = hedge.get();
-            todo.setStatus(status);
             save(todo);
         }
     }
@@ -262,12 +244,6 @@ public class StrategyService implements StrategyApi {
     }
 
     @Override
-    public void save(Hedge hedge) {
-        hedge.setUpdatetime(LocalDateTime.now());
-        mongoTemplate.save(hedge);
-    }
-
-    @Override
     public void save(Follow follow) {
         follow.setUpdatetime(LocalDateTime.now());
         mongoTemplate.save(follow);
@@ -289,29 +265,6 @@ public class StrategyService implements StrategyApi {
     public void save(Setting setting) {
         setting.setUpdatetime(LocalDateTime.now());
         mongoTemplate.save(setting);
-    }
-
-    @Override
-    public void stopLoss(Operator operator, Setting setting) {
-        // 浮亏扩大，设置止损状态
-        if (operator.stopLoss == 0) {
-            relax(operator.operator, RelaxReason.loss).calm(TimeUnit.HOURS.toSeconds(12));
-            operator.setStopLoss(1);
-            operator.setOpenAmt(setting.unitAmt);
-            alert("stopLoss", operator, "止损半天，投资降级：" + operator.openAmt);
-            save(operator);
-        }
-
-        Optional<Operator> partner = getPartner(operator);
-        if(partner.isPresent()) {
-            Operator op = partner.get();
-            if (op.stopLoss == 1) {
-                relax(op.operator, RelaxReason.open).calm(setting.timeGapLoss);
-                alert("stopLoss", op, "止损结束");
-                op.setStopLoss(0);
-                save(op);
-            }
-        }
     }
 
     public long liqPx(String account, String instId, String instType, String mgnMode, double price, double average) {

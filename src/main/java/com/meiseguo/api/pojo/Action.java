@@ -67,11 +67,6 @@ public class Action {
     @API(value = "策略")
     public String strategy;
 
-    // 止损：对冲+换仓，hedge=1代表“请对冲”
-    @API(value = "对冲:0/1", type = "case", choice = {"0:否", "1:是"})
-    public int hedge;
-    @API(value = "换仓:0/1", type = "case", choice = {"0:否", "1:是"})
-    public int exchange;
     @API(value = "跟单:0/1", type = "case", choice = {"0:否", "1:是"})
     public int follow;
 
@@ -187,7 +182,7 @@ public class Action {
         if (StrategyType.buy.name().equals(open.type)) {
             closed.setValue(open.amount * (close.price - open.price));
             closed.setGain(open.amount - close.amount);
-            closed.setGainType("SOPT");
+            closed.setGainType("SPOT");
         } else {
             closed.setValue(open.amount * (open.price - close.price));
             closed.setGain(open.value - close.value);

@@ -51,10 +51,6 @@ public class Operator {
     // 止损：对冲+换仓
     @API(value = "止损:0/1", choice = {"0:否", "1:是"}, visible = true)
     public int stopLoss;
-    @API(value = "对冲:0/1", choice = {"0:否", "1:是"})
-    public int hedge;
-    @API(value = "换仓:0/1", choice = {"0:否", "1:是"})
-    public int exchange;
 
     @API(value = "创建时间", readonly = true, type = "time")
     LocalDateTime createtime = LocalDateTime.now();

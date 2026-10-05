@@ -18,7 +18,7 @@ public class PagesUtil {
             Alarm.class, Warn.class, Order.class,
             Relax.class, Online.class, Copy.class,
             Statistic.class, Pending.class, Action.class, Closed.class, Invest.class,
-            Asset.class, Account.class, Hedge.class, Follow.class, Round.class,
+            Asset.class, Account.class, Follow.class, Round.class,
             Case.class, Operator.class, Status.class, Setting.class, Safety.class,
             Input.class
     };

@@ -13,7 +13,6 @@ public interface StrategyApi {
     Relax relax(String operator, RelaxReason reason);
     Record record(String ccy);
     Record marker(String ccy);
-    Optional<Hedge> getHedge(ActionRelation which, ObjectId sn);
     Optional<Follow> getFollow(ActionRelation which, ObjectId sn);
     Optional<Operator> getPartner(Operator operator);
     Strategy get(Operator operator);
@@ -22,7 +21,6 @@ public interface StrategyApi {
     List<Action> pendingActions(Operator operator, StrategyType type);
     List<Action> actionList(Operator operator, StrategyType type, String side, String status);
     List<Follow> followList(Operator operator, StrategyType type, String side, String status);
-    Optional<Hedge> nextHedge(Operator operator, StrategyType type, String status);
     Optional<Closed> lastClosed(Operator operator, StrategyType type);
     void update(String ordId, String sn, String status);
     void save(Action action);
@@ -30,10 +28,8 @@ public interface StrategyApi {
     void save(Safety safety);
     void ticker(String instType, double price, long ts);
     void save(Guess guess);
-    void save(Hedge hedge);
     void save(Follow follow);
     void save(Operator operator);
     void save(Status status);
     void save(Setting setting);
-    void stopLoss(Operator operator, Setting setting);
 }

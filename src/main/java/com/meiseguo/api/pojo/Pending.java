@@ -26,11 +26,6 @@ public class Pending {
     @API(value = "当前价", visible = true)
     public double current;
 
-    // 止损：对冲+换仓
-    @API(value = "对冲:0/1", choice = {"0:否", "1:是"})
-    public int hedge;
-    @API(value = "换仓:0/1", choice = {"0:否", "1:是"})
-    public int exchange;
     @API(value = "跟单:0/1", choice = {"0:否", "1:是"})
     public int follow;
 
@@ -112,9 +107,7 @@ public class Pending {
         this.amount = action.amount;
         this.value = action.value;
         this.reason = action.reason;
-        this.hedge = action.hedge;
         this.follow = action.follow;
-        this.exchange = action.exchange;
         this.createtime = action.createtime;
         this.current = current.price;
         this.ratio = String.format("%.2f%%", (100.0 * action.winRatio(current)));
