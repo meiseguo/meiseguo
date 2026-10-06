@@ -3,6 +3,8 @@ package com.meiseguo.api.strategy;
 import com.meiseguo.api.StrategyApi;
 import com.meiseguo.api.pojo.*;
 import com.meiseguo.api.utils.PagesUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
@@ -17,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public abstract class Strategy implements Function<Input, List<Action>> {
+    Logger logger = LogManager.getLogger(this.getClass().getName());
     public StrategyType type;
     public Operator operator;
     public Status status;
@@ -209,11 +212,19 @@ public abstract class Strategy implements Function<Input, List<Action>> {
             setting.setDrawdownRatio(BigDecimal.valueOf(marker.average(-1)).setScale(7, RoundingMode.HALF_UP).negate().doubleValue());
             setting.setWinRatio(BigDecimal.valueOf(record.average(1)).setScale(7, RoundingMode.HALF_UP).doubleValue());
         }
-        // 当天之内的投资出现浮亏N次，就缩小投资
-        long todayLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).filter(action -> action.winRatio(input) < 0).count();
-        if (todayLoss >= setting.limitedCount) {
-            operator.setOpenAmt(setting.unitAmt*0.3);
-            api.alert("updateStatus", operator, "今日浮亏："+todayLoss+"，降级投资：" + operator.openAmt);
+        try {
+            Relax relax = api.relax(operator.operator, RelaxReason.mode);
+            // 当天之内的投资出现浮亏N次，就缩小投资
+            long todayLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).filter(action -> action.winRatio(input) < 0).count();
+            boolean allLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).allMatch(action -> action.winRatio(input) < 0);
+            if (todayLoss >= setting.limitedCount && allLoss && isRelax(relax)) {
+                operator.setOpenAmt(setting.unitAmt * 0.3);
+                operator.setMode(Mode.Rescue.name());
+                relax.calm(TimeUnit.MINUTES.toSeconds(3));
+                api.alert("updateStatus", operator, "今日全部浮亏，降级投资：" + operator.openAmt);
+            }
+        } catch (Exception e) {
+            logger.error("降级操作异常", e);
         }
         api.save(operator);
         api.save(setting);
@@ -300,8 +311,16 @@ public abstract class Strategy implements Function<Input, List<Action>> {
                     api.alert("flipStatus", operator, "连续止盈：" + status.winWinCount + "/" + status.limitWinCount);
                 }
             }
-            operator.setOpenAmt(setting.openAmt * 3);
-            api.alert("flipStatus", operator,"止盈升级：" + operator.openAmt);
+            try {
+                Relax relax = api.relax(operator.operator, RelaxReason.mode);
+                operator.setOpenAmt(setting.openAmt * 3);
+                operator.setMode(Mode.Invest.name());
+                relax.calm(TimeUnit.MINUTES.toSeconds(3));
+                api.alert("flipStatus", operator,"止盈升级：" + operator.openAmt);
+            } catch (Exception e) {
+                logger.error("升级操作异常", e);
+            }
+
             status.setWinWinCount(status.winWinCount + 1);
             status.setStatus(StatusType.win.name());
         } else {
