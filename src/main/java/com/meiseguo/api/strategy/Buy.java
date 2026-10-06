@@ -56,8 +56,6 @@ public class Buy extends Strategy {
     private Action openAction(Input input) {
         Action action = newAction();
         action.buy(input, type.open(operator.openAmt, input.price));
-        safety.setFloor(input.price * (1.0 - setting.winRatio));
-        api.save(safety);
         return action;
     }
 
