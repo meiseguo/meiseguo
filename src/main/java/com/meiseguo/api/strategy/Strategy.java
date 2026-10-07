@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class Strategy implements Function<Input, List<Action>> {
     Logger logger = LogManager.getLogger(this.getClass().getName());
@@ -176,7 +177,7 @@ public abstract class Strategy implements Function<Input, List<Action>> {
         List<Action> pending = pendingActions();
         if (guess.test(Case.when(mode, "正在委托").is(!pending.isEmpty()))) {
             api.save(guess);
-            return Collections.emptyList();
+            return pending.stream().filter(action -> ActionStatus.cancel.name().equals(action.getStatus())).collect(Collectors.toList());
         }
         Optional<Action> follow = follow(input);
         if (follow.isPresent()) {

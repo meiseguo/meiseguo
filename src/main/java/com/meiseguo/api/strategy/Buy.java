@@ -31,8 +31,10 @@ public class Buy extends Strategy {
             return Optional.empty();
         }
         if (marker.latest() < -STOP_WIN || actions.isEmpty()) {
-            relax.calm(setting.timeGap);
-            return Optional.of(openAction(input));
+            if (isLow(marker)) {
+                relax.calm(setting.timeGap);
+                return Optional.of(openAction(input));
+            }
         }
         switch (mode) {
             case Invest:

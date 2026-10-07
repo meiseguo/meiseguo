@@ -73,11 +73,11 @@ public class StrategyService implements StrategyApi {
             Record record = records.get(op.ccy);
             actions.addAll(strategy.apply(record.current()));
         }
-        List<Action> result = actions.stream().filter(action -> action.amount > 0).collect(Collectors.toList());
+        List<Action> result = actions.stream().filter(action -> !ActionStatus.cancel.name().equals(action.getStatus())).collect(Collectors.toList());
         if (!result.isEmpty()) {
             mongoTemplate.insert(result, Action.class);
         }
-        return result;
+        return actions.stream().filter(action -> action.amount > 0).collect(Collectors.toList());
     }
 
     @Override
@@ -144,7 +144,7 @@ public class StrategyService implements StrategyApi {
     @Override
     public List<Action> pendingActions(Operator operator, StrategyType type) {
         Record record = record(operator.ccy);
-        List<Action> pending = mongoTemplate.find(new Query(Criteria.where(Z.operator.name()).is(operator.operator).and(Z.account.name()).is(operator.account).and(Z.ccy.name()).is(operator.ccy).and("type").is(type).and(Z.status.name()).in(ActionStatus.init.name(), ActionStatus.live.name())), Action.class);
+        List<Action> pending = mongoTemplate.find(new Query(Criteria.where(Z.operator.name()).is(operator.operator).and(Z.account.name()).is(operator.account).and(Z.ccy.name()).is(operator.ccy).and("type").is(type).and(Z.status.name()).in(ActionStatus.init.name(), ActionStatus.cancel.name(), ActionStatus.live.name())), Action.class);
         // 超时就标记为取消
         pending.stream()
                 .filter(action -> {
@@ -153,11 +153,11 @@ public class StrategyService implements StrategyApi {
                     }
                     return ActionStatus.live.name().equals(action.status) && record.current.millis - action.millis > TimeUnit.SECONDS.toMillis(360);
                 }).forEach(action -> {
-                    action.setStatus(ActionStatus.canceled.name());
+                    action.setStatus(ActionStatus.cancel.name());
                     action.setUpdatetime(LocalDateTime.now());
                     save(action);
                 });
-        return pending.stream().filter(action -> !ActionStatus.canceled.name().equals(action.status)).collect(Collectors.toList());
+        return pending;
     }
 
     @Override

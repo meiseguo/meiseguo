@@ -31,7 +31,7 @@ public class Action {
     @API(value = "分支理由", search = true)
     public String reason;
 
-    @API(value = "状态", type = "case", choice = {"init:创建", "live:委托", "filled:成交", "canceled:撤销", "error:异常", "closed:平仓"}, search = true, visible = true)
+    @API(value = "状态", type = "case", choice = {"init:创建", "live:委托", "filled:成交", "cancel:请撤销", "canceled:撤销", "error:异常", "closing:请平仓", "closed:平仓"}, search = true, visible = true)
     public String status;
 
     @API(value = "方向", type = "case", choice = {"buy:买入", "sell:卖出"}, visible = true)

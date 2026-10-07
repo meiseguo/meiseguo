@@ -68,7 +68,16 @@ def actions(account):
         data = result["data"]
         for action in data:
             try:
-                placeOrder(action)
+                if action["status"] == "cancel":
+                    trade = accounts[action["account"]]
+                    result = trade.cancel_order(instId=action["ccy"], ordId=action["order"])
+                    print("cancel order", result)
+                    if result["code"] == "0":
+                        updateOrder({"ordId":action["order"], "clOrdId":action["sn"]}, "canceled")
+                    else:
+                        updateOrder({"ordId":action["order"] + result["data"][0]["sMsg"], "clOrdId":action["sn"]}, "canceled")
+                else:
+                    placeOrder(action)
             except Exception as e:
                 print("fail to place order : " + account, e)
 
