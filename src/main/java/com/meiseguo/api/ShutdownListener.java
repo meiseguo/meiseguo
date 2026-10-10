@@ -25,16 +25,6 @@ public class ShutdownListener implements ApplicationListener<ContextClosedEvent>
                 String line;
                 while ((line = reader.readLine()) != null) {
                     System.out.println(line);
-                    if(line.contains("python3")) {
-                        String pid = line.split("\\s+")[1];
-                        new Thread(() -> {
-                            try {
-                                runtime.exec("kill -9 " + pid);
-                            } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                            }
-                        }).start();
-                    }
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());

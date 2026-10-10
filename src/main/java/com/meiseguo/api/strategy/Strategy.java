@@ -219,9 +219,9 @@ public abstract class Strategy implements Function<Input, List<Action>> {
             long todayLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).filter(action -> action.winRatio(input) < 0).count();
             boolean allLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).allMatch(action -> action.winRatio(input) < 0);
             if (todayLoss >= setting.limitedCount && allLoss && isRelax(relax)) {
-                operator.setOpenAmt(setting.unitAmt * 0.3);
+                operator.setOpenAmt(setting.unitAmt);
                 operator.setMode(Mode.Rescue.name());
-                relax.calm(TimeUnit.MINUTES.toSeconds(3));
+                relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
                 api.alert("updateStatus", operator, "今日全部浮亏，降级投资：" + operator.openAmt);
             }
         } catch (Exception e) {
@@ -314,9 +314,9 @@ public abstract class Strategy implements Function<Input, List<Action>> {
             }
             try {
                 Relax relax = api.relax(operator.operator, RelaxReason.mode);
-                operator.setOpenAmt(setting.openAmt * 3);
+                operator.setOpenAmt(setting.openAmt * setting.goldenRatio);
                 operator.setMode(Mode.Invest.name());
-                relax.calm(TimeUnit.MINUTES.toSeconds(3));
+                relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
                 api.alert("flipStatus", operator,"止盈升级：" + operator.openAmt);
             } catch (Exception e) {
                 logger.error("升级操作异常", e);
@@ -336,7 +336,7 @@ public abstract class Strategy implements Function<Input, List<Action>> {
                     operator.setStopLoss(1);
                 }
             }
-            operator.setOpenAmt(setting.unitAmt*0.3);
+            operator.setOpenAmt(setting.unitAmt);
             api.alert("flipStatus", operator,"止损降级：" + operator.openAmt);
             status.setLossLossCount(status.lossLossCount - 1);
             status.setStatus(StatusType.loss.name());

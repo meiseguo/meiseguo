@@ -64,7 +64,7 @@ public class Sell extends Strategy {
     private Action closeAction(Input input, Action open) {
         api.relax(operator.operator, RelaxReason.open).calm(setting.timeGap);
         Action action = newAction();
-        if (operator.zhang == 1 && open.price < input.price) {
+        if (operator.zhang == 1 && open.price > input.price) {
             action.buy(input, type.close(open, input.price));
         } else {
             action.buy(input, open.amount);

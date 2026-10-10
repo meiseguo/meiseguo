@@ -65,12 +65,20 @@ public class Buy extends Strategy {
         api.relax(operator.operator, RelaxReason.open).calm(setting.timeGap);
         Action action = newAction();
         if (operator.zhang == 1 && open.price < input.price) {
-            action.sell(input, open.value / input.price);
+            action.sell(input, type.close(open, input.price));
         } else {
             action.sell(input, open.amount);
         }
         api.save(open.closedBy(action));
         api.save(open);
+        // 跟单
+        Optional<Follow> follow = api.getFollow(ActionRelation.open, open.getSn());
+        if (follow.isPresent()) {
+            Follow todo = follow.get();
+            todo.setClose(action.getSn().toString());
+            todo.setStatus(ActionStatus.closed.name());
+            api.save(todo);
+        }
         return action;
     }
 
