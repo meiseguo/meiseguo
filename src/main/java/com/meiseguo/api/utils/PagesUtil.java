@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class PagesUtil {
     public static Class<?>[] classes = {
-            Access.class, Token.class, Bind.class, Config.class, Proc.class,
+            Access.class, Token.class, Bind.class, Config.class,
             Alarm.class, Warn.class, Order.class,
             Relax.class, Online.class, Copy.class,
             Statistic.class, Pending.class, Action.class, Closed.class, Invest.class,

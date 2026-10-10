@@ -53,21 +53,13 @@ public class InternalController {
             mongoTemplate.save(PagesUtil.build(clazz));
         }
         PendingManageService pending = new PendingManageService(mongoTemplate);
-        ProcessService proc = new ProcessService(mongoTemplate);
         Map<String, Invest> invest = pending.getInvest();
         remote.put("online", new OnlineManageService());
         remote.put("relax", new RelaxManageService());
         remote.put("pending", pending);
-        remote.put("proc", proc);
         remote.put("copy", new CopyManageService(mongoTemplate));
         logger.info("PagesUtil.build(Head) finish, register service ok");
         service.scheduleWithFixedDelay(() -> {
-//            boolean delay = StrategyService.records.values().stream().allMatch(record ->
-//                    !ObjectUtils.isEmpty(record.current) && System.currentTimeMillis() - record.current.millis > TimeUnit.SECONDS.toMillis(20)
-//            );
-//            if (delay) {
-//                proc.restart();
-//            }
             pending.update(invest);
         }, 10, 10, TimeUnit.SECONDS);
     }
@@ -195,7 +187,6 @@ public class InternalController {
         try {
             return Reply.success(strategyService.data(ccy));
         } catch (Exception e) {
-            e.printStackTrace();
             return Reply.fail(e.getMessage());
         }
     }
