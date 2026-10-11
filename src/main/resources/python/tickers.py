@@ -61,9 +61,10 @@ async def main():
         argsPublic = assetList()
         wsPublic = WsPublicAsync(url="wss://ws.okx.com:8443/ws/v5/public")
         try:
-            await wsPublic.start()
+            consume_task = await wsPublic.start()  # 拿到 consume 任务
             await wsPublic.subscribe(argsPublic, publicCallback)
-            await asyncio.Event().wait()
+            print("start listening...")
+            await consume_task  # 等待 consume 任务完成（连接断开时它会抛异常结束）
         except Exception as e:
             print("connection lost, reconnect in 5s...", e)
         finally:
