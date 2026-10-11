@@ -15,7 +15,7 @@ api = "http://meiseguo:9990/"
 def askStrategy(ticker):
     url = api + "ticker/" + ticker["instId"] + "/" + ticker["last"] + "/" + ticker["ts"]
     try:
-        res = requests.post(url, headers=headers, timeout=5)
+        res = requests.post(url, headers=headers, timeout=10)  # 5秒改成10秒
         if res.status_code != 200:
             print("fail to report ticker", ticker, "status:", res.status_code)
     except Exception as e:
@@ -42,7 +42,7 @@ def assetList():
     print("load assets, default: ", argsPublic)
     url = api + "assets"
     try:
-        res = requests.post(url, headers=headers, timeout=5)
+        res = requests.post(url, headers=headers, timeout=10)  # 5秒改成10秒
         if res.status_code != 200:
             print("fail to load assets, status:", res.status_code)
             return argsPublic
@@ -57,23 +57,30 @@ def assetList():
 
 async def main():
     print('operator running...')
+    reconnect_delay = 5  # 初始重连延迟
     while True:
         argsPublic = assetList()
         wsPublic = WsPublicAsync(url="wss://ws.okx.com:8443/ws/v5/public")
         try:
-            consume_task = await wsPublic.start()  # 拿到 consume 任务
+            consume_task = await wsPublic.start()
             await wsPublic.subscribe(argsPublic, publicCallback)
             print("start listening...")
-            await consume_task  # 等待 consume 任务完成（连接断开时它会抛异常结束）
+            await consume_task
+            # 正常跑满一轮（连接一直没断），重置重连延迟
+            reconnect_delay = 5
         except Exception as e:
-            print("connection lost, reconnect in 5s...", e)
+            print(f"connection lost, reconnect in {reconnect_delay}s...", e)
         finally:
-            try:
-                await wsPublic.unsubscribe(argsPublic, callback=publicCallback)
-            except Exception as e:
-                print("fail to unsubscribe", e)
+            # 只在连接还活着时尝试 unsubscribe，避免报错
+            if wsPublic.websocket is not None:
+                try:
+                    await wsPublic.unsubscribe(argsPublic, callback=publicCallback)
+                except Exception as e:
+                    print("fail to unsubscribe (ignore):", e)
             print('operator stopped, reconnecting...')
-        await asyncio.sleep(5)
+        # 指数退避：5s -> 10s -> 20s -> 40s -> 60s（封顶）
+        await asyncio.sleep(reconnect_delay)
+        reconnect_delay = min(reconnect_delay * 2, 60)
 
 if __name__ == '__main__':
     asyncio.run(main())

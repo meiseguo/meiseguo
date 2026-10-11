@@ -15,7 +15,7 @@ def loadData():
     print("load accounts", accounts)
     url = api + "accounts"
     try:
-        res = requests.post(url, headers=headers, timeout=5)
+        res = requests.post(url, headers=headers, timeout=10)
         if res.status_code != 200:
             print("fail to load accounts, status:", res.status_code)
             return
@@ -32,7 +32,7 @@ def loadData():
 def updateOrder(order, state):
     url = api + "update/" + order["ordId"] + "/" + order["clOrdId"] + "/" + state
     try:
-        res = requests.post(url, headers=headers, timeout=5)
+        res = requests.post(url, headers=headers, timeout=10)
         if res.status_code != 200:
             print("fail to update order", order, "status:", res.status_code)
             return
@@ -72,7 +72,7 @@ def placeOrder(action):
 def actions(account):
     url = api + "actions/" + account
     try:
-        res = requests.post(url, headers=headers, timeout=5)
+        res = requests.post(url, headers=headers, timeout=10)
         if res.status_code != 200:
             print(f"[{account}] fail to get actions, status:", res.status_code)
             return

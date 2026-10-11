@@ -18,7 +18,7 @@ print(f"start account {account}")
 def updateOrder(order):
     print(f"[{account}] update order", order["ordId"])
     try:
-        res = requests.post(api + "report/" + account, headers=headers, json=order, timeout=5)
+        res = requests.post(api + "report/" + account, headers=headers, json=order, timeout=10)
         print(res.status_code)
         if res.status_code != 200:
             return
@@ -46,7 +46,7 @@ def check():
                 url = api + "danger/" + account + "/" + item["instId"] + "/" + item["instType"] + "/" + item["mgnMode"] + "/" + liqPx + "/" + avgPx
                 print(url)
                 try:
-                    res = requests.post(url, headers=headers, timeout=5)
+                    res = requests.post(url, headers=headers, timeout=10)
                     if res.status_code != 200:
                         print(f"[{account}] fail to report danger, status:", res.status_code)
                 except Exception as e:
