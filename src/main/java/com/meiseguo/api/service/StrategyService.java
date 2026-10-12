@@ -7,6 +7,8 @@ import com.meiseguo.api.utils.PagesUtil;
 import com.meiseguo.api.vo.RecordVo;
 import com.meiseguo.api.vo.StatisticVo;
 import com.mongodb.client.result.UpdateResult;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -28,6 +30,7 @@ import java.util.stream.DoubleStream;
 
 @Service
 public class StrategyService implements StrategyApi {
+    Logger logger = LogManager.getLogger(this.getClass().getName());
     @Autowired
     private ConfigService configService;
     @Autowired
@@ -178,15 +181,19 @@ public class StrategyService implements StrategyApi {
     @Override
     public void update(String ordId, String sn, String status) {
         Action action = mongoTemplate.findOne(new Query(Criteria.where(Z.sn.name()).is(new ObjectId(sn))), Action.class);
-        assert action != null;
+        if(action == null) {
+            logger.error("不存在的订单号：{}， 状态：{}", sn, status);
+            return;
+        }
         Optional<String> debug = configService.get("order.debug");
         if (debug.isPresent() && debug.get().equals("true")) {
+            logger.warn("debug订单直接成功");
             if (ActionStatus.error.name().equals(status)) {
                 ordId = sn;
             }
             status = ActionStatus.filled.name();
         }
-        System.out.println(ordId + ", status: " + status + ", sn: " + sn);
+        logger.info("更新订单状态，订单号：{}, status: {}, sn: {}", ordId, status, sn);
         if (ActionStatus.error.name().equals(status)) {
             long count = mongoTemplate.count(new Query(Criteria.where(Z.order.name()).is(ordId)), Action.class);
             if (count > 1) {
@@ -198,6 +205,25 @@ public class StrategyService implements StrategyApi {
         action.setStatus(status);
         action.setUpdatetime(LocalDateTime.now());
         mongoTemplate.save(action);
+        Optional<Closed> maybeClosed = Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where("close").is(sn).and(Z.status.name()).is(ActionStatus.closing.name())), Closed.class));
+        if(maybeClosed.isPresent()) {
+            Closed closed = maybeClosed.get();
+            logger.info("更新平仓订单号：{}，开仓订单号:{}", closed.getClose().toString(), closed.getOpen().toString());
+            Action open = mongoTemplate.findOne(new Query(Criteria.where(Z.sn.name()).is(closed.getOpen())), Action.class);
+            if(open != null) {
+                if(ActionStatus.filled.name().equals(status)) {
+                    logger.info("平仓订单已成交，更新开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.closed.name());
+                    open.setStatus(ActionStatus.closed.name());
+                    closed.setStatus(ActionStatus.closed.name());
+                } else if(ActionStatus.canceled.name().equals(status) || ActionStatus.error.name().equals(status)) {
+                    logger.info("平仓订单已失败，回退开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.filled.name());
+                    open.setStatus(ActionStatus.filled.name());
+                    closed.setStatus(status);
+                }
+                save(open);
+                save(closed);
+            }
+        }
         // 更新跟单状态
         Optional<Follow> follow = getFollow(ActionRelation.close, action.getSn());
         if (follow.isPresent()) {
@@ -302,7 +328,7 @@ public class StrategyService implements StrategyApi {
             order.setSn(old.getSn());
         }
         order.setAccount(account);
-        System.out.println("手动订单上报");
+        logger.info("手动订单上报:{}，订单号：{}", account, order.getOrdId());
         mongoTemplate.save(order);
     }
 

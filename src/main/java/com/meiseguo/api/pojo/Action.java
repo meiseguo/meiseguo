@@ -164,7 +164,6 @@ public class Action {
         close.setMinmax(open.minmax);
         close.setStopLoss(open.stopLoss);
         close.setStopWin(open.stopWin);
-        open.setStatus(ActionStatus.closed.name());
         open.setUpdatetime(LocalDateTime.now());
         open.setClosed(amt);
         Closed closed = new Closed();

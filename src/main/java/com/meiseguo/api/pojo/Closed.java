@@ -62,7 +62,7 @@ public class Closed {
     @API(value = "手续费")
     public double fee;
 
-    @API(value = "状态", type = "case", choice ={"init:创建", "live:委托", "filled:成交", "canceled:撤销", "error:异常", "closed:平仓"}, search = true)
+    @API(value = "状态", type = "case", choice ={"init:创建", "live:委托", "filled:成交", "cancel:请撤销", "canceled:撤销", "error:异常", "closing:请平仓", "closed:平仓"}, search = true)
     public String status;
 
     @API(value = "创建时间", readonly = true, type = "time")

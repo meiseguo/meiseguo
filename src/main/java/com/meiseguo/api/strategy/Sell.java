@@ -69,6 +69,7 @@ public class Sell extends Strategy {
         } else {
             action.buy(input, open.amount);
         }
+        open.setStatus(ActionStatus.closing.name());
         api.save(open.closedBy(action));
         api.save(open);
         // 跟单
