@@ -15,16 +15,6 @@ api = "http://meiseguo:9990/"
 accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
 print(f"start account {account}")
 
-async def heartbeat(ws):
-    while True:
-        await asyncio.sleep(20)
-        try:
-            if ws.websocket and ws.websocket.open:
-                await ws.websocket.ping()
-                print(f"[{account}] ping sent")
-        except Exception as e:
-            print(f"[{account}] ping failed: {e}")
-
 def updateOrder(order):
     print(f"[{account}] update order", order["ordId"])
     try:
@@ -66,13 +56,14 @@ def check():
 
 def privateCallback(message):
     try:
+        print(f"[{account}] RAW message: {str(message)[:100]}")
         obj = json.loads(message)
         if ("event" in obj) and (obj["event"] == "subscribe" or obj["event"] == "login"):
             return
         if ("arg" not in obj):
             return
         channel = obj["arg"]["channel"]
-        if channel == "orders":
+        if channel == "orders" and "data" in obj:
             orders = obj["data"]
             for order in orders:
                 try:
