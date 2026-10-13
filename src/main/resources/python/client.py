@@ -78,6 +78,21 @@ def privateCallback(message):
     except Exception as e:
         print(f"[{account}] fail to parse message", e)
 
+async def heartbeat(ws, stop_evt):
+    """主动心跳：每 20s 发一次 OKX 业务心跳（或 ws.ping()）"""
+    while not stop_evt.is_set():
+        try:
+            # OKX 私有频道推荐业务心跳（比 ws.ping 更稳）
+            hb = '{"op":"ping","args":[]}'
+            await ws.send(hb)  # 若 SDK 暴露 send；否则用内部方法
+            # 或：await ws._ws.ping() （若可访问底层）
+        except Exception as e:
+            print(f"heartbeat fail: {e}")
+            stop_evt.set()  # 触发主协程重连
+            break
+        await asyncio.sleep(20)
+        
+        
 async def main():
     print(f'[{account}] client running')
     argsPrivate = [{"channel": "orders", "instType": "ANY"}, {"channel": "balance_and_position"}]
@@ -90,20 +105,23 @@ async def main():
             useServerTime=False
         )
 
-        stop_evt = asyncio.Event()  # 用于“正常阻塞”
+        stop_evt = asyncio.Event()
+        hb_task = None
         try:
             await wsPrivate.start()
             # 让 SDK 内部自己 recv（它一定会起接收协程），消息走回调
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
             print(f"[{account}] start listening")
 
-            # ✅ 异常驱动保活：没异常就一直等；异常/取消会跳出
+            hb_task = asyncio.create_task(heartbeat(wsPrivate, stop_evt))
             await stop_evt.wait()
 
             print("end of private ws")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
+            if hb_task:
+                hb_task.cancel()
             try:
                 await wsPrivate.unsubscribe(argsPrivate, callback=privateCallback)
             except Exception as e:
