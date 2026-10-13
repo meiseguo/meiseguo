@@ -90,20 +90,16 @@ async def main():
             useServerTime=False
         )
 
+        stop_evt = asyncio.Event()  # 用于“正常阻塞”
         try:
             await wsPrivate.start()
+            # 让 SDK 内部自己 recv（它一定会起接收协程），消息走回调
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
             print(f"[{account}] start listening")
-            # 关键：主动消费消息，异常会从这里抛出
-            async for raw in wsPrivate.websocket:
-                if raw.type == "text":
-                    message = raw.data
-                    # 交给你的回调处理（内部已用 to_thread 隔离）
-                    privateCallback(message)
-                elif raw.type == "ping":
-                    # 手动回 pong，避免 SDK 心跳冲突
-                    await wsPrivate.websocket.pong(raw.data)
-                    
+
+            # ✅ 异常驱动保活：没异常就一直等；异常/取消会跳出
+            await stop_evt.wait()
+
             print("end of private ws")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
