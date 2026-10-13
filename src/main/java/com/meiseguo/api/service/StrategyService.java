@@ -154,7 +154,7 @@ public class StrategyService implements StrategyApi {
                     if (ActionStatus.init.name().equals(action.status) && record.current.millis - action.millis > TimeUnit.SECONDS.toMillis(120)) {
                         return true;
                     }
-                    return ActionStatus.live.name().equals(action.status) && record.current.millis - action.millis > TimeUnit.SECONDS.toMillis(360);
+                    return ActionStatus.live.name().equals(action.status) && record.current.millis - action.millis > TimeUnit.SECONDS.toMillis(1800);
                 }).forEach(action -> {
                     action.setStatus(ActionStatus.cancel.name());
                     action.setUpdatetime(LocalDateTime.now());
@@ -206,6 +206,7 @@ public class StrategyService implements StrategyApi {
         action.setUpdatetime(LocalDateTime.now());
         mongoTemplate.save(action);
         Optional<Closed> maybeClosed = Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where("close").is(action.getSn()).and(Z.status.name()).is(ActionStatus.closing.name())), Closed.class));
+        logger.info("maybe closed: {}", maybeClosed);
         if(maybeClosed.isPresent()) {
             Closed closed = maybeClosed.get();
             logger.info("更新平仓订单号：{}，开仓订单号:{}", closed.getClose().toString(), closed.getOpen().toString());
@@ -217,7 +218,7 @@ public class StrategyService implements StrategyApi {
                     closed.setStatus(ActionStatus.closed.name());
                 } else if(ActionStatus.canceled.name().equals(status) || ActionStatus.error.name().equals(status)) {
                     logger.info("平仓订单已失败，回退开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.filled.name());
-                    open.setStatus(ActionStatus.filled.name());
+                    open.setStatus(status);
                     closed.setStatus(status);
                 }
                 save(open);
