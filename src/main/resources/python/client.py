@@ -55,7 +55,6 @@ def check():
 
 def privateCallback(message):
     try:
-        print(f"[{account}] RAW message: {str(message)[:100]}")
         if not isinstance(message, str) or not message.startswith(("{", "[")):
             return
         obj = json.loads(message)
