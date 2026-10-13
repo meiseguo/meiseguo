@@ -205,7 +205,7 @@ public class StrategyService implements StrategyApi {
         action.setStatus(status);
         action.setUpdatetime(LocalDateTime.now());
         mongoTemplate.save(action);
-        Optional<Closed> maybeClosed = Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where("close").is(sn).and(Z.status.name()).is(ActionStatus.closing.name())), Closed.class));
+        Optional<Closed> maybeClosed = Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where("close").is(action.getSn()).and(Z.status.name()).is(ActionStatus.closing.name())), Closed.class));
         if(maybeClosed.isPresent()) {
             Closed closed = maybeClosed.get();
             logger.info("更新平仓订单号：{}，开仓订单号:{}", closed.getClose().toString(), closed.getOpen().toString());
