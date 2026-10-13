@@ -82,10 +82,13 @@ async def heartbeat(ws, stop_evt):
     """主动心跳：每 20s 发一次 OKX 业务心跳（或 ws.ping()）"""
     while not stop_evt.is_set():
         try:
-            # OKX 私有频道推荐业务心跳（比 ws.ping 更稳）
-            hb = '{"op":"ping","args":[]}'
-            await ws.send(hb)  # 若 SDK 暴露 send；否则用内部方法
-            # 或：await ws._ws.ping() （若可访问底层）
+            if hasattr(ws, 'websocket') and ws.websocket and not ws.websocket.closed:
+                await ws.websocket.ping()  # 或 await ws.websocket.send('ping')
+            elif hasattr(ws, '_ws') and ws._ws and not ws._ws.closed:
+                await ws._ws.ping()
+            else:
+                # 兜底：如果找不到底层，用 SDK 标准业务心跳格式（带 args）
+                await ws.send('ping', []) # 部分版本支持，不行就用上面的底层 ping
         except Exception as e:
             print(f"heartbeat fail: {e}")
             stop_evt.set()  # 触发主协程重连
