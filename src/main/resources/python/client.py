@@ -76,12 +76,12 @@ def privateCallback(message):
             orders = obj["data"]
             for order in orders:
                 try:
-                    updateOrder(order)
+                    asyncio.create_task(asyncio.to_thread(updateOrder, order))
                 except Exception as e:
                     print(f"[{account}] fail to update order", e)
         elif channel == "balance_and_position":
             try:
-                check()
+                asyncio.create_task(asyncio.to_thread(check))
             except Exception as e:
                 print(f"[{account}] fail to check", e)
     except Exception as e:
