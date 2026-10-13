@@ -23,6 +23,8 @@ def askStrategy(ticker):
 
 def publicCallback(message):
     try:
+        if message == "pong" or message.strip() == "pong" or message.strip().lower() == "pong":
+            return
         obj = json.loads(message)
         if ("event" in obj) and (obj["event"] == "subscribe"):
             return
