@@ -55,17 +55,17 @@ def assetList():
         print("fail to load assets", e)
     return argsPublic
 
-async def heartbeat(ws, stop_evt):
+async def heartbeat(ws):
     print("[Tickers] heartbeat STARTED", flush=True)
-    while not stop_evt.is_set():
+    while True:
         try:
             await ws.websocket.send("ping")
             print(f"[Tickers] PING sent {time.strftime('%H:%M:%S')}", flush=True)
         except Exception as e:
             print(f"[Tickers] heartbeat FAIL: {e}", flush=True)
-            stop_evt.set()
             break
         await asyncio.sleep(20)
+
 
 async def main():
     print('operator running...')
