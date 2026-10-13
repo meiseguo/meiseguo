@@ -19,7 +19,6 @@ def updateOrder(order):
     print(f"[{account}] update order", order["ordId"])
     try:
         res = requests.post(api + "report/" + account, headers=headers, json=order, timeout=10)
-        print(res.status_code)
         if res.status_code != 200:
             return
 
@@ -44,7 +43,6 @@ def check():
                     liqPx = "0.0"
                 avgPx = item["avgPx"]
                 url = api + "danger/" + account + "/" + item["instId"] + "/" + item["instType"] + "/" + item["mgnMode"] + "/" + liqPx + "/" + avgPx
-                print(url)
                 try:
                     res = requests.post(url, headers=headers, timeout=10)
                     if res.status_code != 200:
@@ -57,6 +55,8 @@ def check():
 def privateCallback(message):
     try:
         print(f"[{account}] RAW message: {str(message)[:100]}")
+        if not isinstance(message, str) or not message.startswith(("{", "[")):
+            return
         obj = json.loads(message)
         if ("event" in obj) and (obj["event"] == "subscribe" or obj["event"] == "login"):
             return
