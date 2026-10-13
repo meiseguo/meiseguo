@@ -92,7 +92,10 @@ async def main():
             await wsPrivate.start()
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
             print(f"[{account}] start listening")
-            await asyncio.Event().wait()
+            
+            # 关键：主动消费消息，异常会从这里抛出
+            await wsPrivate.consume()
+            print("end of private ws")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
