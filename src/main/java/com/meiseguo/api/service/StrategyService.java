@@ -219,15 +219,22 @@ public class StrategyService implements StrategyApi {
                     logger.info("平仓订单已成交，更新开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.closed.name());
                     open.setStatus(ActionStatus.closed.name());
                     closed.setStatus(ActionStatus.closed.name());
-                } else if(ActionStatus.canceled.name().equals(status) || ActionStatus.error.name().equals(status)) {
-                    logger.info("平仓订单已失败，回退开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.filled.name());
-                    open.setStatus(status);
+                    open.setUpdatetime(LocalDateTime.now());
+                    closed.setUpdatetime(LocalDateTime.now());
+                    mongoTemplate.save(open);
+                    mongoTemplate.save(closed);
+                } else if(ActionStatus.canceled.name().equals(status)) {
+                    logger.info("平仓订单已撤销，回退开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.filled.name());
+                    open.setStatus(ActionStatus.filled.name());
                     closed.setStatus(status);
+                    open.setUpdatetime(LocalDateTime.now());
+                    closed.setUpdatetime(LocalDateTime.now());
+                    mongoTemplate.save(open);
+                    mongoTemplate.save(closed);
+                } else {
+                    logger.info("other status ignore:{}", status);
                 }
-                open.setUpdatetime(LocalDateTime.now());
-                closed.setUpdatetime(LocalDateTime.now());
-                mongoTemplate.save(open);
-                mongoTemplate.save(closed);
+                
             } else {
                 logger.error("open action not found:{}", closed);
             }
