@@ -79,16 +79,11 @@ def privateCallback(message):
         print(f"[{account}] fail to parse message", e)
 
 async def heartbeat(ws, stop_evt):
-    """主动心跳：每 20s 发一次 OKX 业务心跳（或 ws.ping()）"""
+    print("heartbeat...")
     while not stop_evt.is_set():
         try:
-            if hasattr(ws, '_ws'):
-                await ws._ws.ping()
-            elif hasattr(ws, 'websocket'):
-                await ws.websocket.ping()
-            else:
-                # 兜底：用 SDK 业务心跳（带空 args，避免上轮 missing args 错）
-                await ws.send('ping', [])
+            await ws.websocket.send("ping")
+            print(f"[Buy001] heartbeat PING sent at {time.strftime('%H:%M:%S')}")
         except Exception as e:
             print(f"heartbeat fail: {e}")
             stop_evt.set()  # 触发主协程重连
