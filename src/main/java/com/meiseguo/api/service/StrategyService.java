@@ -140,7 +140,9 @@ public class StrategyService implements StrategyApi {
     @Override
     public Action get(String sn) {
         Action action = mongoTemplate.findOne(new Query(Criteria.where(Z.sn.name()).is(new ObjectId(sn))), Action.class);
-        assert action != null;
+        if（action==null) {
+             logger.error("action not found: {}", sn);
+        }
         return action;
     }
 
@@ -180,7 +182,7 @@ public class StrategyService implements StrategyApi {
 
     @Override
     public void update(String ordId, String sn, String status) {
-        Action action = mongoTemplate.findOne(new Query(Criteria.where(Z.sn.name()).is(new ObjectId(sn))), Action.class);
+        Action action = get(sn);
         if(action == null) {
             logger.error("不存在的订单号：{}， 状态：{}", sn, status);
             return;
@@ -210,7 +212,8 @@ public class StrategyService implements StrategyApi {
         if(maybeClosed.isPresent()) {
             Closed closed = maybeClosed.get();
             logger.info("更新平仓订单号：{}，开仓订单号:{}", closed.getClose().toString(), closed.getOpen().toString());
-            Action open = mongoTemplate.findOne(new Query(Criteria.where(Z.sn.name()).is(closed.getOpen())), Action.class);
+            Action open = get(closed.getOpen().toString());
+            logger.warn("origin open action:{}", open);
             if(open != null) {
                 if(ActionStatus.filled.name().equals(status)) {
                     logger.info("平仓订单已成交，更新开仓订单号：{}，状态：{}", closed.getOpen().toString(), ActionStatus.closed.name());
@@ -221,8 +224,12 @@ public class StrategyService implements StrategyApi {
                     open.setStatus(status);
                     closed.setStatus(status);
                 }
-                save(open);
-                save(closed);
+                open.setUpdatetime(LocalDateTime.now());
+                closed.setUpdatetime(LocalDateTime.now());
+                mongoTemplate.save(open);
+                mongoTemplate.save(closed);
+            } else {
+                logger.error("open action not found:{}", closed);
             }
         }
         // 更新跟单状态
