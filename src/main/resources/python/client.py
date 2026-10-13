@@ -98,22 +98,17 @@ async def main():
             url="wss://ws.okx.com:8443/ws/v5/private",
             useServerTime=False
         )
-        hb_task = None
+
         try:
             await wsPrivate.start()
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
             print(f"[{account}] start listening")
-            # 新增：启动心跳（每20秒ping一次）
-            hb_task = asyncio.create_task(heartbeat(wsPrivate))
-
             # 关键：主动消费消息，异常会从这里抛出
             await wsPrivate.consume()
             print("end of private ws")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
-            if hb_task:
-                hb_task.cancel()
             try:
                 await wsPrivate.unsubscribe(argsPrivate, callback=privateCallback)
             except Exception as e:
