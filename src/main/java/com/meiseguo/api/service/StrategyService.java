@@ -140,7 +140,7 @@ public class StrategyService implements StrategyApi {
     @Override
     public Action get(String sn) {
         Action action = mongoTemplate.findOne(new Query(Criteria.where(Z.sn.name()).is(new ObjectId(sn))), Action.class);
-        if（action==null) {
+        if(action==null){
              logger.error("action not found: {}", sn);
         }
         return action;
