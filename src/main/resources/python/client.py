@@ -106,8 +106,15 @@ async def main():
             # 只需要等待连接断开，SDK 会抛异常
             while True:
                 await asyncio.sleep(10)  # 每醒来一次，检查连接状态
-                if wsPrivate.websocket is None or not wsPrivate.websocket.open:
+                if wsPrivate.websocket is None:
                     print(f"[{account}] connection closed, reconnecting...", flush=True)
+                    break
+                # 检查底层连接状态
+                try:
+                    if wsPrivate.websocket.connection is None or wsPrivate.websocket.connection.closed:
+                        print(f"[{account}] connection closed, reconnecting...", flush=True)
+                        break
+                except:
                     break
 
         except Exception as e:
