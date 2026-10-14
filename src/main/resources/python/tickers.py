@@ -12,18 +12,22 @@ on  = 0
 headers = {'Content-type': 'application/json'}
 api = "http://meiseguo:9990/"
 
-def askStrategy(ticker):
+last_tick_time = time.time()
+
+async def askStrategy(ticker):
+    global last_tick_time
+    last_tick_time = time.time()
     url = api + "ticker/" + ticker["instId"] + "/" + ticker["last"] + "/" + ticker["ts"]
     try:
-        res = requests.post(url, headers=headers, timeout=10)  # 5秒改成10秒
+        res = await asyncio.to_thread(requests.post, url, headers=headers, timeout=10)
         if res.status_code != 200:
-            print("fail to report ticker", ticker, "status:", res.status_code)
+            print("fail to report ticker", ticker, "status:", res.status_code, flush=True)
     except Exception as e:
-        print("fail to report ticker", ticker, "error:", e)
+        print("fail to report ticker", ticker, "error:", e, flush=True)
 
 def publicCallback(message):
     try:
-        if message == "pong" or message.strip() == "pong" or message.strip().lower() == "pong":
+        if isinstance(message, str) and message.strip().lower() == "pong":
             return
         obj = json.loads(message)
         if ("event" in obj) and (obj["event"] == "subscribe"):
@@ -34,78 +38,65 @@ def publicCallback(message):
         if channel == "tickers":
             tickers = obj["data"]
             for ticker in tickers:
-                askStrategy(ticker)
+                asyncio.create_task(askStrategy(ticker))
     except Exception as e:
-        print("fail to ask strategy", e)
-        print('okx message: ', message)
+        print("fail to ask strategy", e, flush=True)
+        print('okx message: ', message, flush=True)
 
-def assetList():
+async def assetList():
     argsPublic = [{"channel":"tickers","instId":"DOGE-USDT-SWAP"}]
-    print("load assets, default: ", argsPublic)
+    print("load assets, default: ", argsPublic, flush=True)
     url = api + "assets"
     try:
-        res = requests.post(url, headers=headers, timeout=10)  # 5秒改成10秒
+        res = await asyncio.to_thread(requests.post, url, headers=headers, timeout=10)
         if res.status_code != 200:
-            print("fail to load assets, status:", res.status_code)
+            print("fail to load assets, status:", res.status_code, flush=True)
             return argsPublic
         result = json.loads(res.text)
         if result["state"] == 200:
             data = result["data"]
             argsPublic = [{"channel":"tickers","instId":x} for x in data]
-            print("load assets, result: ", argsPublic)
+            print("load assets, result: ", argsPublic, flush=True)
     except Exception as e:
-        print("fail to load assets", e)
+        print("fail to load assets", e, flush=True)
     return argsPublic
 
-async def heartbeat(ws):
-    print("[Tickers] heartbeat STARTED", flush=True)
-    while True:
-        try:
-            await ws.websocket.send("ping")
-            print(f"[Tickers] PING sent {time.strftime('%H:%M:%S')}", flush=True)
-        except Exception as e:
-            print(f"[Tickers] heartbeat FAIL: {e}", flush=True)
+async def watchdog(stop_evt):
+    while not stop_evt.is_set():
+        await asyncio.sleep(10)
+        if time.time() - last_tick_time > 30:
+            print(f"[Tickers] no tick for 30s, reconnecting...", flush=True)
+            stop_evt.set()
             break
-        await asyncio.sleep(20)
-
 
 async def main():
-    print('operator running...')
-    reconnect_delay = 5  # 初始重连延迟
+    print('operator running...', flush=True)
+    reconnect_delay = 5
     while True:
-        argsPublic = assetList()
+        argsPublic = await assetList()
         wsPublic = WsPublicAsync(url="wss://ws.okx.com:8443/ws/v5/public")
-        hb_task = None
+        wd_task = None
+        stop_evt = asyncio.Event()
         try:
             consume_task = await wsPublic.start()
-            hb_task = asyncio.create_task(heartbeat(wsPublic))
-            print("[Tickers] heartbeat TASK CREATED", flush=True)
             await wsPublic.subscribe(argsPublic, publicCallback)
             print("start listening...", flush=True)
-
-            # 并发等待：接收任务 或 心跳任务，任一结束就退出
-            done, pending = await asyncio.wait(
-                {consume_task, hb_task},
-                return_when=asyncio.FIRST_COMPLETED
-            )
-            # 如果心跳先失败，consume_task 还在跑，需要取消它
-            if hb_task in done:
-                print("[Tickers] heartbeat stopped, forcing reconnect", flush=True)
+            wd_task = asyncio.create_task(watchdog(stop_evt))
+            await stop_evt.wait()
+            if consume_task and not consume_task.done():
                 consume_task.cancel()
             reconnect_delay = 5
         except Exception as e:
-            print(f"connection lost, reconnect in {reconnect_delay}s...", e)
+            print(f"connection lost, reconnect in {reconnect_delay}s...", e, flush=True)
         finally:
-            if hb_task and not hb_task.done():
-                hb_task.cancel()
-            # 只在连接还活着时尝试 unsubscribe，避免报错
+            if wd_task and not wd_task.done():
+                wd_task.cancel()
             if wsPublic.websocket is not None:
                 try:
                     await wsPublic.unsubscribe(argsPublic, callback=publicCallback)
                 except Exception as e:
-                    print("fail to unsubscribe (ignore):", e)
-            print('operator stopped, reconnecting...')
-        # 指数退避：5s -> 10s -> 20s -> 40s -> 60s（封顶）
+                    print("fail to unsubscribe (ignore):", e, flush=True)
+            print('operator stopped, reconnecting...', flush=True)
         await asyncio.sleep(reconnect_delay)
         reconnect_delay = min(reconnect_delay * 2, 60)
 
