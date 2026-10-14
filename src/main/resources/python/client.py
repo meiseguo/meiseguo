@@ -83,13 +83,6 @@ def privateCallback(message):
     except Exception as e:
         print(f"[{account}] fail to parse message", e)
 
-async def watchdog(stop_evt):
-    while not stop_evt.is_set():
-        await asyncio.sleep(10)
-        if time.time() - last_data_time > 30:
-            print(f"[{account}] no data for 30s, reconnecting...", flush=True)
-            stop_evt.set()
-            break
 
 async def main():
     print(f'[{account}] client running')
@@ -104,22 +97,22 @@ async def main():
             useServerTime=False
         )
 
-        stop_evt = asyncio.Event()
-        wd_task = None
         try:
             await wsPrivate.start()
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
             print(f"[{account}] start listening")
 
-            wd_task = asyncio.create_task(watchdog(stop_evt))
-            await stop_evt.wait()
+            # 不需要 watchdog，SDK 内部处理心跳和重连
+            # 只需要等待连接断开，SDK 会抛异常
+            while True:
+                await asyncio.sleep(10)  # 每醒来一次，检查连接状态
+                if wsPrivate.websocket is None or not wsPrivate.websocket.open:
+                    print(f"[{account}] connection closed, reconnecting...", flush=True)
+                    break
 
-            print("end of private ws")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
-            if wd_task:
-                wd_task.cancel()
             try:
                 await wsPrivate.unsubscribe(argsPrivate, callback=privateCallback)
             except Exception as e:
