@@ -101,22 +101,10 @@ async def main():
             await wsPrivate.start()
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
             print(f"[{account}] start listening")
-
-            # 不需要 watchdog，SDK 内部处理心跳和重连
-            # 只需要等待连接断开，SDK 会抛异常
-            while True:
-                await asyncio.sleep(10)  # 每醒来一次，检查连接状态
-                if wsPrivate.websocket is None:
-                    print(f"[{account}] connection closed, reconnecting...", flush=True)
-                    break
-                # 检查底层连接状态
-                try:
-                    if wsPrivate.websocket.connection is None or wsPrivate.websocket.connection.closed:
-                        print(f"[{account}] connection closed, reconnecting...", flush=True)
-                        break
-                except:
-                    break
-
+            # 让 SDK 内部处理，连接断开时 SDK 会抛异常
+            # 用 Event 等待，SDK 断开时抛异常会跳出
+            await asyncio.Event().wait()
+            print(f"[{account}] stoped")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
