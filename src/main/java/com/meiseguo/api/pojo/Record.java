@@ -119,7 +119,8 @@ public class Record implements Function<Input, Optional<Statistic>> {
             return small;
         }
         double[] array = collect.stream().mapToDouble(winRate).toArray();
-        return DoubleStream.of(array).skip(Math.max(0, array.length - 3)).min().orElse(small);
+        double ave = DoubleStream.of(array).skip(Math.max(0, array.length - 3)).min().orElse(small);
+        return Math.max(ave, small);
     }
 
     public double decline() {
