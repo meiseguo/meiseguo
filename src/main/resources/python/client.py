@@ -85,7 +85,7 @@ def privateCallback(message):
 
 
 async def main():
-    print(f'[{account}] client running')
+    print(f'[{account}] client running', flush=True)
     await init_session()
     argsPrivate = [{"channel": "orders", "instType": "ANY"}, {"channel": "balance_and_position"}]
     while True:
@@ -93,29 +93,26 @@ async def main():
             apiKey=api_key,
             passphrase=passphrase,
             secretKey=secret_key,
-            url="wss://ws.okx.com:8443/ws/v5/private",
+            url="wss://ws.okx.com/ws/v5/private",
             useServerTime=False
         )
 
         try:
             await wsPrivate.start()
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
-            print(f"[{account}] start listening")
-            # 用 sleep 循环，不用 Event().wait()
-            while True:
-                await asyncio.sleep(60)
-                # 检查连接状态
-                if wsPrivate.websocket is None:
-                    print(f"[{account}] connection closed, reconnecting...", flush=True)
-                    break
+            print(f"[{account}] start listening", flush=True)
+            # 让 SDK 内部处理，连接断开时 SDK 会抛异常
+            # 用 Event 等待，SDK 断开时抛异常会跳出
+            await asyncio.Event().wait()
+            print(f"[{account}] stoped", flush=True)
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
             try:
                 await wsPrivate.unsubscribe(argsPrivate, callback=privateCallback)
             except Exception as e:
-                print(f"[{account}] fail to unsubscribe: {e}")
-            print(f"[{account}] stopped, reconnecting...")
+                print(f"[{account}] fail to unsubscribe: {e}", flush=True)
+            print(f"[{account}] stopped, reconnecting...", flush=True)
         await asyncio.sleep(5)
 
 if __name__ == '__main__':
