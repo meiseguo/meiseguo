@@ -2,7 +2,7 @@ import sys
 import time
 import json
 import asyncio
-import aiohttp
+import requests
 import okx.Account as Account
 from okx.websocket.WsPrivateAsync import WsPrivateAsync
 
@@ -16,34 +16,25 @@ api = "http://meiseguo:9990/"
 accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
 print(f"start account {account}")
 
-session = None
-last_data_time = time.time()
-
-async def init_session():
-    global session
-    session = aiohttp.ClientSession()
-
-async def updateOrder(order):
-    global last_data_time
-    last_data_time = time.time()
+def updateOrder(order):
     print(f"[{account}] update order", order["ordId"])
     try:
-        async with session.post(api + "report/" + account, json=order, timeout=10) as resp:
-            if resp.status != 200:
-                return
-            result = await resp.json()
-            if result["state"] == 200:
-                print(f"[{account}] updated", order["ordId"])
+        res = requests.post(api + "report/" + account, headers=headers, json=order, timeout=10)
+        if res.status_code != 200:
+            return
+
+        result = json.loads(res.text)
+        if result["state"] == 200:
+            print(f"[{account}] updated", order["ordId"])
     except Exception as ex:
         print(f"[{account}] fail to report", order, ex)
 
-async def check():
-    global last_data_time
-    last_data_time = time.time()
+def check():
     try:
-        result = await asyncio.to_thread(accountAPI.get_positions)
+        result = accountAPI.get_positions()
         if "data" not in result:
             return
+
         for item in result["data"]:
             if "avgPx" in item:
                 liqPx = "0.0"
@@ -54,17 +45,15 @@ async def check():
                 avgPx = item["avgPx"]
                 url = api + "danger/" + account + "/" + item["instId"] + "/" + item["instType"] + "/" + item["mgnMode"] + "/" + liqPx + "/" + avgPx
                 try:
-                    async with session.post(url, timeout=10) as resp:
-                        if resp.status != 200:
-                            print(f"[{account}] fail to report danger, status:", resp.status)
+                    res = requests.post(url, headers=headers, timeout=10)
+                    if res.status_code != 200:
+                        print(f"[{account}] fail to report danger, status:", res.status_code)
                 except Exception as e:
                     print(f"[{account}] fail to report danger", e)
     except Exception as e:
         print(f"[{account}] fail to get positions", e)
 
 def privateCallback(message):
-    global last_data_time
-    last_data_time = time.time()
     try:
         if not isinstance(message, str) or not message.startswith(("{", "[")):
             return
@@ -77,16 +66,33 @@ def privateCallback(message):
         if channel == "orders" and "data" in obj:
             orders = obj["data"]
             for order in orders:
-                asyncio.create_task(updateOrder(order))
+                try:
+                    asyncio.create_task(asyncio.to_thread(updateOrder, order))
+                except Exception as e:
+                    print(f"[{account}] fail to update order", e)
         elif channel == "balance_and_position":
-            asyncio.create_task(check())
+            try:
+                asyncio.create_task(asyncio.to_thread(check))
+            except Exception as e:
+                print(f"[{account}] fail to check", e)
     except Exception as e:
         print(f"[{account}] fail to parse message", e)
 
+async def heartbeat(ws, stop_evt):
+    print("heartbeat...")
+    while not stop_evt.is_set():
+        try:
+            await ws.websocket.send("ping")
+            print(f"[Buy001] heartbeat PING sent at {time.strftime('%H:%M:%S')}")
+        except Exception as e:
+            print(f"heartbeat fail: {e}")
+            stop_evt.set()  # 触发主协程重连
+            break
+        await asyncio.sleep(20)
+
 
 async def main():
-    print(f'[{account}] client running', flush=True)
-    await init_session()
+    print(f'[{account}] client running')
     argsPrivate = [{"channel": "orders", "instType": "ANY"}, {"channel": "balance_and_position"}]
     while True:
         wsPrivate = WsPrivateAsync(
@@ -97,22 +103,28 @@ async def main():
             useServerTime=False
         )
 
+        stop_evt = asyncio.Event()
+        hb_task = None
         try:
             await wsPrivate.start()
+            # 让 SDK 内部自己 recv（它一定会起接收协程），消息走回调
             await wsPrivate.subscribe(argsPrivate, callback=privateCallback)
-            print(f"[{account}] start listening", flush=True)
-            # 让 SDK 内部处理，连接断开时 SDK 会抛异常
-            # 用 Event 等待，SDK 断开时抛异常会跳出
-            await asyncio.Event().wait()
-            print(f"[{account}] stoped", flush=True)
+            print(f"[{account}] start listening")
+
+            hb_task = asyncio.create_task(heartbeat(wsPrivate, stop_evt))
+            await stop_evt.wait()
+
+            print("end of private ws")
         except Exception as e:
             print(f"[{account}] connection lost: {e}")
         finally:
+            if hb_task:
+                hb_task.cancel()
             try:
                 await wsPrivate.unsubscribe(argsPrivate, callback=privateCallback)
             except Exception as e:
-                print(f"[{account}] fail to unsubscribe: {e}", flush=True)
-            print(f"[{account}] stopped, reconnecting...", flush=True)
+                print(f"[{account}] fail to unsubscribe: {e}")
+            print(f"[{account}] stopped, reconnecting...")
         await asyncio.sleep(5)
 
 if __name__ == '__main__':
