@@ -269,7 +269,7 @@ public class StrategyService implements StrategyApi {
     @Override
     public void ticker(String ccy, double price, long ts) {
         records.computeIfAbsent(ccy, this::recover);
-        markers.computeIfAbsent(ccy, key -> new Record(3, new LinkedList<>(), 0.002));
+        markers.computeIfAbsent(ccy, key -> new Record(3, new LinkedList<>(), 0.0014));
         Input input = new Input(ccy, price, ts);
         markers.get(ccy).apply(input);
         records.get(ccy).apply(input).ifPresent(statistic -> mongoTemplate.save(statistic));
