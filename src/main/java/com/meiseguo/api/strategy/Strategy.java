@@ -218,11 +218,15 @@ public abstract class Strategy implements Function<Input, List<Action>> {
             // 当天之内的投资出现浮亏N次，就缩小投资
             long todayLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).filter(action -> action.winRatio(input) < 0).count();
             boolean allLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).allMatch(action -> action.winRatio(input) < 0);
-            if (todayLoss >= setting.limitedCount && allLoss && isRelax(relax)) {
-                operator.setOpenAmt(setting.unitAmt);
-                operator.setMode(Mode.Rescue.name());
-                relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
-                api.alert("updateStatus", operator, "今日全部浮亏，降级投资：" + operator.openAmt);
+            if (todayLoss >= setting.limitedCount && allLoss) {
+                if(isRelax(relax)) {
+                    logger.info("今日全部浮亏，已经降级：{}", mode);
+                } else {
+                    operator.setOpenAmt(setting.unitAmt);
+                    operator.setMode(Mode.Rescue.name());
+                    relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
+                    api.alert("updateStatus", operator, "今日全部浮亏，降级投资：" + operator.openAmt);
+                }
             }
         } catch (Exception e) {
             logger.error("降级操作异常", e);
