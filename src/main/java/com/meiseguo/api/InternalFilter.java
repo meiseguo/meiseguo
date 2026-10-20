@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *2、在让目标资源执行之前，可以对request\response作预处理，再让目标资源执行
  *3、在目标资源执行之后，可以捕获目标资源的执行结果，从而实现一些特殊的功能
  */
-@WebFilter(filterName = "TheFilter",urlPatterns = "/internal/*")
+@WebFilter(filterName = "TheFilter",urlPatterns = "/*")
 @Configuration
 public class InternalFilter implements Filter {
     Logger logger = LogManager.getLogger(this.getClass().getName());
@@ -176,9 +176,40 @@ public class InternalFilter implements Filter {
                     }
                 }
             }
+        } else if (requestURI.startsWith("/server")  || requestURI.startsWith("/static") || requestURI.startsWith("/js") || requestURI.startsWith("/css")) {
+            logger.info("访问后台, ip {} requestURI {}",  request.getRemoteAddr(), request.getRequestURI());
+        } else {
+            // 新增：非 /internal 接口，IP 白名单拦截
+            if (!checkIp(request, response)) {
+                return;
+            }
         }
         //调用该方法后，表示过滤器经过原来的url请求处理方法
         filterChain.doFilter(servletRequest,servletResponse);
+    }
+
+    private boolean checkIp(HttpServletRequest request, ServletResponse servletResponse) {
+        String ip = request.getRemoteAddr();
+        Config ipWhite = get("filter.ip.white");
+        if (ObjectUtils.isEmpty(ipWhite)) {
+            logger.error("filter.ip.white not config");
+            return false; // 没配置就放行，避免误伤
+        }
+        String[] whiteList = ipWhite.getValue().split(",");
+        for (String white : whiteList) {
+            if (white.trim().equals(ip)) {
+                logger.debug("ip {} in white list, pass", ip);
+                return true;
+            }
+        }
+        logger.warn("ip {} not in white list, reject {}", ip, request.getRequestURI());
+        try {
+            servletResponse.setContentType("application/json;charset=utf-8");
+            servletResponse.getWriter().print("{\"msg\":\"403 forbid\",\"state\":403}");
+        } catch (Exception e) {
+            logger.error("fail to write 403", e);
+        }
+        return false;
     }
 
     @Override
