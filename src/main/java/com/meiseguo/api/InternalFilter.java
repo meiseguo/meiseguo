@@ -154,6 +154,19 @@ public class InternalFilter implements Filter {
         String token = request.getHeader("token");
         String access = request.getHeader("access");
         logger.debug("{} token {} access {}",requestURI, token, access);
+        Config uriConfig = get("filter.uri");
+        if (!ObjectUtils.isEmpty(uriConfig)) {
+            String[] uris = uriConfig.getValue().split(",");
+            for (String uri : uris) {
+                if (requestURI.startsWith(uri.trim())) {
+                    // 命中配置的 URI，检查 IP 白名单
+                    if (!checkIp(request, response)) {
+                        return;
+                    }
+                    break;
+                }
+            }
+        }
 
         if(requestURI.startsWith("/internal")) {
             if (ObjectUtils.isEmpty(token)) {
@@ -175,13 +188,6 @@ public class InternalFilter implements Filter {
                         }
                     }
                 }
-            }
-        } else if (requestURI.startsWith("/server")  || requestURI.startsWith("/static") || requestURI.startsWith("/js") || requestURI.startsWith("/css")) {
-            logger.info("访问后台, ip {} requestURI {}",  request.getRemoteAddr(), request.getRequestURI());
-        } else {
-            // 新增：非 /internal 接口，IP 白名单拦截
-            if (!checkIp(request, response)) {
-                return;
             }
         }
         //调用该方法后，表示过滤器经过原来的url请求处理方法
