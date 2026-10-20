@@ -219,12 +219,10 @@ public abstract class Strategy implements Function<Input, List<Action>> {
             long todayLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).filter(action -> action.winRatio(input) < 0).count();
             boolean allLoss = actions.stream().filter(action -> input.millis - action.millis < TimeUnit.HOURS.toMillis(24)).allMatch(action -> action.winRatio(input) < 0);
             if (todayLoss >= setting.limitedCount && allLoss) {
-                if(isRelax(relax)) {
-                    logger.info("今日全部浮亏，已经降级：{}", mode);
-                } else {
+                if(!isRelax(relax)) {
                     operator.setOpenAmt(setting.unitAmt);
                     operator.setMode(Mode.Rescue.name());
-                    relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
+                    relax.calm(TimeUnit.MINUTES.toSeconds(10));
                     api.alert("updateStatus", operator, "今日全部浮亏，降级投资：" + operator.openAmt);
                 }
             }
@@ -320,7 +318,7 @@ public abstract class Strategy implements Function<Input, List<Action>> {
                 Relax relax = api.relax(operator.operator, RelaxReason.mode);
                 operator.setOpenAmt(setting.openAmt * setting.goldenRatio);
                 operator.setMode(Mode.Invest.name());
-                relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
+                relax.calm(TimeUnit.MINUTES.toSeconds(10));
                 api.alert("flipStatus", operator,"止盈升级：" + operator.openAmt);
             } catch (Exception e) {
                 logger.error("升级操作异常", e);
