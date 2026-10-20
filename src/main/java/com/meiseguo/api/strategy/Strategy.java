@@ -318,7 +318,7 @@ public abstract class Strategy implements Function<Input, List<Action>> {
                 Relax relax = api.relax(operator.operator, RelaxReason.mode);
                 operator.setOpenAmt(setting.openAmt * setting.goldenRatio);
                 operator.setMode(Mode.Invest.name());
-                relax.calm(TimeUnit.MINUTES.toSeconds(10));
+                relax.calm(TimeUnit.MILLISECONDS.toSeconds(setting.limitedTime));
                 api.alert("flipStatus", operator,"止盈升级：" + operator.openAmt);
             } catch (Exception e) {
                 logger.error("升级操作异常", e);
