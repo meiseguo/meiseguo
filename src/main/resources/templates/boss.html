@@ -86,6 +86,8 @@
         today.resize();
         winning.resize();
         ratio.resize();
+        invest.resize();
+        prices.resize();
     });
     var ccy = location.hash.length < 1 ? 'DOGE-USDT-SWAP' : location.hash.substring(1)
 
@@ -97,7 +99,7 @@
             var option = {
                 title: {
                     text: record.rsi,
-                    subtext: off === 1 ?'闹':''
+                    subtext: off === 1 ?'⏰':''
                 },
                 tooltip: {},
                 legend: {
